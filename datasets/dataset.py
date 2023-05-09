@@ -6,25 +6,15 @@ import os
 """ 
 https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=543
 """
-# 
+# Aihub : 다자 대화 제외해야 함. 
 class AIHubDataset():
-    def __init__(self, speaker1, speaker2, queries, responses, device):
-        self.speaker1 = speaker1
-        self.speaker2 = speaker2 
+    def __init__(self, queries, responses, act, device):
         self.queries = queries 
         self.responses = responses 
+        self.act = act # speaker act of response
         self.device = device 
     
     def __getitem__(self, idx):
-        
-        speaker1 = {
-            key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.speaker1.items()
-        }
-        speaker2 = {
-            key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.speaker2.items()
-        }
         query = {
             key : torch.tensor(val[idx]).to(self.device)
             for key, val in self.queries.items()
@@ -33,11 +23,16 @@ class AIHubDataset():
             key : torch.tensor(val[idx]).to(self.device)
             for key, val in self.responses.items()
         }
-        return {'persona1': speaker1, 'person2' : speaker2, 'query' : query, 'response' : response}
+        act = {
+            key : torch.tensor(val[idx]).to(self.device)
+            for key, val in self.act.items()
+        }
+        
+        
+        return {'act' : act,  'query' : query, 'response' : response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
-
 class MBTIDataset(Dataset):
     def __init__(self, a_mbti, questions, answers, device):
         self.a_mbti = a_mbti 
@@ -82,7 +77,50 @@ class NLIDataset(Dataset):
 
     def __len__(self):
         return len(self.pre['input_ids'])
-
+def read_aihub_split(split_dir):
+    query = []
+    response = []
+    q_act = []
+    r_act = []
+    try:
+        with open(split_dir, 'r', encoding="utf-8") as file:
+            data = json.load(file)
+            info = data["info"][0]
+            lines = info["annotations"]["lines"]
+            print(len(lines))
+            for i in range(len(lines)):
+                if i == len(lines) - 1: break
+                q = lines[i]["norm_text"]
+                qs = lines[i]["speechAct"].find('(') + 1
+                qe = lines[i]["speechAct"].find(')')
+                qa = lines[i]["speechAct"][qs:qe]
+                
+                if qa == "단언": qa = 0
+                elif qa == "지시" : qa = 1
+                elif qa == "언약" : qa = 2
+                elif qa == "표현" : qa = 3
+                 
+                r = lines[i+1]["norm_text"]
+                rs = lines[i+1]["speechAct"].find('(') + 1
+                re = lines[i+1]["speechAct"].find(')')
+                ra = lines[i+1]["speechAct"][rs:re]
+                
+                if ra == "단언": ra = 0
+                elif ra == "지시" : ra = 1
+                elif ra == "언약" : ra = 2
+                elif ra == "표현" : ra = 3
+                
+                query.append(q)
+                response.append(r)
+                q_act.append(qa)
+                r_act.append(ra)
+                
+    except FileNotFoundError:
+        print("Sorry! File not found!\n")
+    
+    print("Complete!")
+    return q_act, query, r_act, response
+    
 def read_nli_split(split_dir):
     neutral_pre_list = []
     neutral_hyp_list = []

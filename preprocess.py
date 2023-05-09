@@ -10,13 +10,15 @@ from datasets.dataset import read_mbti_split
 #tokenize해줘야 함 반드시!
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
-    train_persona, train_query, train_response = []
-    test_persona, test_query, test_response = []
-    assert len(train_persona) == len(train_query) == len(train_response)
+    train_qact, train_query, train_ract, train_response = read_aihub_split()
     
-    train_persona, val_persona, train_query, val_query, train_response, val_response = train_test_split(
-        train_persona,
+    test_qact, test_query, test_ract, test_response = read_aihub_split()
+    assert len(train_qact) == len(train_query) == len(train_ract) == len(train_response)
+    
+    train_qact, val_qact, train_query, val_query, train_ract, val_ract, train_response, val_response = train_test_split(
+        train_qact,
         train_query,
+        train_ract,
         train_response,
         test_size = args.split_rate
     )
@@ -24,6 +26,79 @@ def preprocess_aihub_dataset(args):
     tokenizer = get_kobart_tokenizer()
     tokenizer = tokenizer.from_pretrained('./pretrained_models/kobart-base-v2')
 
+    #act는 tokenize할 필요X. 단순 레이블링
+    train_query_tokenized = {
+        k : v for k, v in tokenizer(
+            train_query,
+            truncation = True,
+            padding = True,
+            max_length = args.max_srclen
+        ).items()
+    }
+    
+    val_query_tokenized = {
+        k : v for k, v in tokenizer(
+            val_query,
+            truncation = True,
+            padding = True,
+            max_length = args.max_srclen
+        ).items()
+    }
+    
+    test_query_tokenized ={
+        k : v for k, v in tokenizer(
+            test_query,
+            truncation = True,
+            padding = True,
+            max_length = args.max_srclen
+        ).items()
+    }
+    
+    train_response_tokenized = {
+        k : v for k, v in tokenizer(
+            train_response,
+            truncation = True,
+            padding = True,
+            max_length = args.max_tgtlen
+        ).items()
+    }
+    
+    val_response_tokenized = {
+        k : v for k, v in tokenizer(
+            val_response,
+            truncation = True,
+            padding = True,
+            max_length = args.max_tgtlen
+        ).items()
+    }
+    
+    test_response_tokenized = {
+        k : v for k, v in tokenizer(
+            test_response,
+            truncation = True,
+            padding = True,
+            max_length = args.max_tgtlen
+        ).items()
+    }
+    print("Saving Tokenized dict\n")
+    path = './data/aihub/aihub_tokenized/'
+    with open(path + 'train_query.json', 'w') as train_query:
+        json.dump(train_query_tokenized, train_query)
+    with open(path + 'train_response.json', 'w') as train_response:
+        json.dump(train_response_tokenized, train_response)
+        
+    with open(path + 'val_query.json', 'w') as val_query:
+        json.dump(val_query_tokenized, val_query)
+    with open(path + 'val_response.json', 'w') as val_response:
+        json.dump(val_response_tokenized, val_response)
+      
+    with open(path + 'test_query.json', 'w') as test_query:
+        json.dump(test_query_tokenized, test_query)
+    with open(path + 'test_response.json', 'w') as test_response:
+        json.dump(test_response_tokenized, test_response)
+    
+    print("Completed Dumping personas, queries and reponses...\n")
+    
 def tokenize_nli_dataset(args, tokenizer, path):
     print("Tokenize nli data...")
     
