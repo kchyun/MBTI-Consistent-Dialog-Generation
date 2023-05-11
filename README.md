@@ -1,1 +1,1 @@
-# MBTI-Consistent-Dialog-Generation [COSE461]
+# MBTI-Consistent-Dialog-Generation 
