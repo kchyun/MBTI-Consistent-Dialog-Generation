@@ -6,82 +6,117 @@ from kobart import get_kobart_tokenizer
 from sklearn.model_selection import train_test_split
 from datasets.dataset import read_nli_split 
 from datasets.dataset import read_mbti_split
-
+from datasets.dataset import read_aihub_split
+from glob import glob
+import os 
+from os.path import dirname, join, basename
 #tokenize해줘야 함 반드시!
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
-    train_qact, train_query, train_ract, train_response = read_aihub_split()
+    dir = args.aihub_train.split('/')[-1]
+    aihub_files = list(glob(join(args.aihub_train, "*.*")))
+    train_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    val_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    test_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     
-    test_qact, test_query, test_ract, test_response = read_aihub_split()
-    assert len(train_qact) == len(train_query) == len(train_ract) == len(train_response)
+    train_response_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    val_response_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    test_response_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     
-    train_qact, val_qact, train_query, val_query, train_ract, val_ract, train_response, val_response = train_test_split(
-        train_qact,
-        train_query,
-        train_ract,
-        train_response,
-        test_size = args.split_rate
-    )
+    train_qact_dict= []
+    val_qact_dict= []
+    test_qact_dict= []
     
+    train_ract_dict = []
+    val_ract_dict= []
+    test_ract_dict = []
     tokenizer = get_kobart_tokenizer()
     tokenizer = tokenizer.from_pretrained('./pretrained_models/kobart-base-v2')
 
-    #act는 tokenize할 필요X. 단순 레이블링
-    train_query_tokenized = {
-        k : v for k, v in tokenizer(
+    for file in aihub_files:
+        
+        train_qact, train_query, train_ract, train_response = read_aihub_split(file)
+        
+        if len(train_qact) <=1 : continue
+        test_qact, test_query, test_ract, test_response = read_aihub_split(file)
+        assert len(train_qact) == len(train_query) == len(train_ract) == len(train_response)
+        
+        train_qact, val_qact, train_query, val_query, train_ract, val_ract, train_response, val_response = train_test_split(
+            train_qact,
+            train_query,
+            train_ract,
+            train_response,
+            test_size = args.split_rate
+        )
+        
+        
+        #act는 tokenize할 필요X. 단순 레이블링
+        train_qact_dict.append(train_qact)
+        val_qact_dict.append(val_qact)
+        test_qact_dict.append(test_qact)
+        
+        train_ract_dict.append(train_ract)
+        val_ract_dict.append(val_ract)
+        test_ract_dict.append(test_ract)
+        
+        
+        for k, v in tokenizer(
             train_query,
             truncation = True,
             padding = True,
-            max_length = args.max_srclen
-        ).items()
-    }
-    
-    val_query_tokenized = {
-        k : v for k, v in tokenizer(
+            max_length = args.max_srclen_aihub 
+        ).items():
+            train_query_tokenized[k] += v
+        
+        for k, v in tokenizer(
             val_query,
             truncation = True,
             padding = True,
-            max_length = args.max_srclen
-        ).items()
-    }
-    
-    test_query_tokenized ={
-        k : v for k, v in tokenizer(
+            max_length = args.max_srclen_aihub
+        ).items():
+            val_query_tokenized[k] += v
+        
+        for k, v in tokenizer(
             test_query,
             truncation = True,
             padding = True,
-            max_length = args.max_srclen
-        ).items()
-    }
-    
-    train_response_tokenized = {
-        k : v for k, v in tokenizer(
+            max_length = args.max_srclen_aihub
+        ).items():
+            test_query_tokenized[k] += v
+   
+        for k, v in tokenizer(
             train_response,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
-        ).items()
-    }
-    
-    val_response_tokenized = {
-        k : v for k, v in tokenizer(
+            max_length = args.max_tgtlen_aihub 
+        ).items():
+            
+            train_response_tokenized[k] += v
+        
+        for k, v in tokenizer(
             val_response,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
-        ).items()
-    }
-    
-    test_response_tokenized = {
-        k : v for k, v in tokenizer(
+            max_length = args.max_tgtlen_aihub
+        ).items():
+            val_response_tokenized[k] += v
+        
+        for k, v in tokenizer(
             test_response,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
-        ).items()
-    }
+            max_length = args.max_tgtlen_aihub
+        ).items():
+            test_response_tokenized[k] += v
+     
+        print(file)
+    
     print("Saving Tokenized dict\n")
+    
     path = './data/aihub/aihub_tokenized/'
+    if not os.path.exists(os.path.join(path, dir)):
+        os.makedirs(os.path.join(path,dir))
+    path = path + dir + '/'
     with open(path + 'train_query.json', 'w') as train_query:
         json.dump(train_query_tokenized, train_query)
     with open(path + 'train_response.json', 'w') as train_response:
@@ -97,6 +132,21 @@ def preprocess_aihub_dataset(args):
     with open(path + 'test_response.json', 'w') as test_response:
         json.dump(test_response_tokenized, test_response)
     
+    with open(path + 'train_qact.json', 'w') as train_qact:
+        json.dump(train_qact_dict, train_qact)
+    with open(path + 'train_ract.json', 'w') as train_ract:
+        json.dump(train_ract_dict, train_ract)
+    
+    with open(path + 'val_qact.json', 'w') as val_qact:
+        json.dump(val_qact_dict, val_qact)
+    with open(path + 'val_ract.json', 'w') as val_ract:
+        json.dump(val_ract_dict, val_ract)
+    
+    with open(path + 'test_qact.json', 'w') as test_qact:
+        json.dump(test_qact_dict, test_qact)
+    with open(path + 'test_ract.json', 'w') as test_ract:
+        json.dump(test_ract_dict, test_ract)
+    
     print("Completed Dumping personas, queries and reponses...\n")
     
 def tokenize_nli_dataset(args, tokenizer, path):
@@ -109,7 +159,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             n_pre,
             truncation = True,
             padding = True,
-            max_length = args.max_srclen
+            max_length = args.max_srclen_nli
         ).items()
     }
     
@@ -118,7 +168,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             n_hyp,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
+            max_length = args.max_tgtlen_nli
         ).items()
     }
     
@@ -128,7 +178,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             c_pre,
             truncation = True,
             padding = True,
-            max_length = args.max_srclen
+            max_length = args.max_srclen_nli
         ).items()
     }
     
@@ -137,7 +187,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             c_hyp,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
+            max_length = args.max_tgtlen_nli
         ).items()
     }
     
@@ -146,7 +196,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             e_pre,
             truncation = True, 
             padding = True,
-            max_length =args.max_srclen
+            max_length =args.max_srclen_nli
         ).items()
     }
     
@@ -155,7 +205,7 @@ def tokenize_nli_dataset(args, tokenizer, path):
             e_hyp,
             truncation = True,
             padding = True,
-            max_length = args.max_tgtlen
+            max_length = args.max_tgtlen_nli
         ).items()
     }
    
@@ -350,19 +400,36 @@ if __name__ == '__main__':
                         default = "data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv",
                         help = "path to nli dataset")
     parser.add_argument("--dataset_type", type = str,
-                        default = "mbti",
-                        required = True)
+                        default = "mbti")
+                        #required = True)
     parser.add_argument("--max_srclen", type = int,
-                        default = 32,
-                        help = "max length of source")
+                        default = 500,
+                        help = "max length of source mbti data")
     parser.add_argument("--max_tgtlen", type = int,
-                        default = 32,
-                        help = "max length of target")
+                        default = 500,
+                        help = "max length of target mbti data")
+    parser.add_argument("--max_srclen_nli", type = int,
+                        default = 64,
+                        help = "max length of source nli data")
+    parser.add_argument("--max_tgtlen_nli", type = int,
+                        default = 64,
+                        help = "max length of target nli data")
+    parser.add_argument("--max_srclen_aihub", type = int,
+                        default = 64,
+                        help = "max length of source aihub data")
+    parser.add_argument("--max_tgtlen_aihub", type = int,
+                        default = 64,
+                        help = "max lenght of target aihub data")
+    parser.add_argument("--aihub_train", type = str,
+                        default = "data/aihub/TL_01. KAKAO(1)",
+                        help = "path to aihub dataset")
     args = parser.parse_args()
-    
+    """
     if args.dataset_type == "mbti":
         preprocess_mbti_dataset(args)
     elif args.dataset_type == "aihub":
         preprocess_aihub_dataset(args)
     
-    
+    """
+
+    preprocess_aihub_dataset(args)
