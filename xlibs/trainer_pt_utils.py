@@ -34,11 +34,6 @@ from .utils import logging
 if is_torch_tpu_available():
     import torch_xla.core.xla_model as xm
 
-if version.parse(torch.__version__) <= version.parse("1.4.1"):
-    SAVE_STATE_WARNING = ""
-else:
-    from torch.optim.lr_scheduler import SAVE_STATE_WARNING
-
 logger = logging.get_logger(__name__)
 
 
