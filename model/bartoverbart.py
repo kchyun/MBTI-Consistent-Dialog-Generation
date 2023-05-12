@@ -383,7 +383,7 @@ def train(args):
                 print('\nTRAINING EPOCH %d\n' % epoch)
                 model.train()
 
-        if not step <= args.warm_up_steps:
+        if not step <= args.warm_up_steps and epoch%50 == 0:
             print(f'Saving model at epoch {epoch} step {step}')
             model.save_pretrained(f"{args.save_model_path}_%d" % epoch)
 
@@ -454,9 +454,9 @@ def predict(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/AIHub/bartoverbart_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/MBTI/bartoverbart_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -571,9 +571,9 @@ def evaluation(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/AIHub/bartoverbart_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/MBTI/bartoverbart_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -696,7 +696,7 @@ if __name__ == '__main__':
     parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kobart-base-v2")
     parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kobart-base-v2")
     parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kobart-based-v2")
-    
+    parser.add_argument("--total_epoch", type = int, default = "100")
     
     #Data
     parser.add_argument("--dataset_type", type = str, default = "aihub")
