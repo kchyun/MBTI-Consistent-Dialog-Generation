@@ -12,7 +12,9 @@ from evaluations import eval_distinct
 from xlibs import EncoderDecoderModel 
 from xlibs import AdamW 
 
-from kobart import get_kobart_tokenizer
+# from kobart import get_kobart_tokenizer
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+
 
 from datasets.dataset import AIHubDataset, NLIDataset
 from datasets.dataset import MBTIDataset 
@@ -114,8 +116,10 @@ def train(args):
     model.train()
     
     print("Load tokenized data..\n")
-    tokenizer = get_kobart_tokenizer()
-    tokenizer = tokenizer.from_pretrained(args.encoder_model)
+    
+    # tokenizer 변경 필요
+    # KcBERT tokeniaer import with transformers
+    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
     
     tokenizer, model = init(tokenizer, model)
     # tokenize 필요
@@ -202,15 +206,6 @@ def train(args):
             # NLI
             
             # neutral unused
-            # with open(path + 'neutral_pre.json', 'w') as neutral_pre:
-            #    print("Load neutral_pre")
-            #    tmp = neutral_pre.readline()
-            #    neutral_pre_tokenized = json.loads(tmp)
-            # with open(path + 'neutral_hyp.json', 'w') as neutral_hyp:
-            #    print("Load neutral_hyp")
-            #    tmp = neutral_hyp.readline()
-            #    neutral_hyp_tokenized = json.loads(tmp)
-            
             with open(path + 'contradiction_pre.json', 'w') as contradiction_pre:
                 print("Load contradiction_pre")
                 tmp = contradiction_pre.readline()
