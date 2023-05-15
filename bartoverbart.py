@@ -30,6 +30,8 @@ def init(tokenizer, model):
     model.config.min_length = 3
     model.config.early_stopping = True 
     model.config.length_penalty = 1.0 
+    model.config.decoder_start_token_id=2
+    model.config.force_bos_token_to_be_generated=True
     
     return tokenizer, model 
 
@@ -378,7 +380,7 @@ def train(args):
                 print('\nTRAINING EPOCH %d\n' % epoch)
                 model.train()
 
-        if not step <= args.warm_up_steps and epoch%50 == 0:
+        if not step <= args.warm_up_steps:
             print(f'Saving model at epoch {epoch} step {step}')
             model.save_pretrained(f"{args.save_model_path}_%d" % epoch)
 
