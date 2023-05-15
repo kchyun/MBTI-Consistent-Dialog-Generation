@@ -92,24 +92,10 @@ def read_aihub_split(split_dir):
             for i in range(len(lines)):
                 if i == len(lines) - 1: break
                 q = lines[i]["norm_text"]
-                qs = lines[i]["speechAct"].find('(') + 1
-                qe = lines[i]["speechAct"].find(')')
-                qa = lines[i]["speechAct"][qs:qe]
-                
-                if qa == "단언": qa = 0
-                elif qa == "지시" : qa = 1
-                elif qa == "언약" : qa = 2
-                elif qa == "표현" : qa = 3
-                 
+                qa = lines[i]["speechAct"].replace("(", " ").replace(")", " ")
+
                 r = lines[i+1]["norm_text"]
-                rs = lines[i+1]["speechAct"].find('(') + 1
-                re = lines[i+1]["speechAct"].find(')')
-                ra = lines[i+1]["speechAct"][rs:re]
-                
-                if ra == "단언": ra = 0
-                elif ra == "지시" : ra = 1
-                elif ra == "언약" : ra = 2
-                elif ra == "표현" : ra = 3
+                ra = lines[i+1]["speechAct"].replace("(", " ").replace(")", " ")
                 
                 query.append(q)
                 response.append(r)
@@ -165,10 +151,10 @@ def read_mbti_split(split_dir):
     try:
         with open(split_dir, "r", encoding="utf-8") as src:
             for line in src:
-                _, _, _, q, a, _, a_mbti = line.split("\t")
+                _, _, _, _, q, a, _, a_mbti = line.split("\t")
 
-                q = list(q.replace("\n", " ").split("[SEP]")[:-1])
-                a = list(a.replace("\n", " ").split("[SEP]")[:-1])
+                q = q.replace("\n", " ").replace("[SEP]", " ")
+                a = a.replace("\n", " ").replace("[SEP]", " ")
 
                 # TBD
                 if "t" in a_mbti:

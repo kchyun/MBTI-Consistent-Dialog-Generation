@@ -34,9 +34,9 @@ def init(tokenizer, model):
     return tokenizer, model 
 
 def prepare_aihub_data_batch(batch):
-    persona_input_ids = batch['act']['input_ids']
-    persona_attention_mask = batch['act']['attention_mask']
-    persona_type_ids = batch['act']['token_type_ids'] * 0 + 1
+    persona_input_ids = batch['persona']['input_ids']
+    persona_attention_mask = batch['persona']['attention_mask']
+    persona_type_ids = batch['persona']['token_type_ids'] * 0 + 1
 
     query_input_ids = batch['query']['input_ids']
     query_attention_mask = batch['query']['attention_mask']
@@ -135,91 +135,91 @@ def train(args):
 
             # Loading training/validation set
             if args.dataset_type == 'aihub':
-                with open(path + 'train_qact.json', 'w') as train_qacts:
+                with open(path + 'train_qact.json', 'r') as train_qacts:
                     print("Load train_qact")
                     tmp = train_qacts.readline()
                     train_qact = json.loads(tmp)
-                with open(path + 'train_ract.json', 'w') as train_racts:
+                with open(path + 'train_ract.json', 'r') as train_racts:
                     print("Load train_ract")
                     tmp = train_racts.readline()
                     train_ract = json.loads(tmp)
-                with open(path + 'train_query.json', 'w') as train_query:
+                with open(path + 'train_query.json', 'r') as train_query:
                     print("Load train_query")
                     tmp = train_query.readline()
                     train_query_tokenized = json.loads(tmp)
-                with open(path + 'train_response.json', 'w') as train_response:
+                with open(path + 'train_response.json', 'r') as train_response:
                     print("Load train_response")
                     tmp = train_response.readline()
                     train_response_tokenized = json.loads(tmp)
                     
-                with open(path + 'val_qact.json', 'w') as val_qacts:
+                with open(path + 'val_qact.json', 'r') as val_qacts:
                     print("Load train_qact")
                     tmp = val_qacts.readline()
                     val_qact = json.loads(tmp)
-                with open(path + 'val_ract.json', 'w') as val_racts:
+                with open(path + 'val_ract.json', 'r') as val_racts:
                     print("Load val_ract")
                     tmp = val_racts.readline()
                     val_ract = json.loads(tmp)
-                with open(path + 'val_query.json', 'w') as val_query:
+                with open(path + 'val_query.json', 'r') as val_query:
                     print("Load val_query")
                     tmp = val_query.readline()
                     val_query_tokenized = json.loads(tmp)
-                with open(path + 'val_response.json', 'w') as val_response:
+                with open(path + 'val_response.json', 'r') as val_response:
                     print("Load val_response")
                     tmp = val_response.readline()
                     val_response_tokenized = json.loads(tmp)
 
             elif args.dataset_type == 'mbti':
-                with open(path + 'train_mbti.json', 'w') as train_mbti:
+                with open(path + 'train_mbti.json', 'r') as train_mbti:
                     print("Load train_mbti")
                     tmp = train_mbti.readline()
                     train_mbti_tokenized = json.loads(tmp)
-                with open(path + 'train_persona.json', 'w') as train_persona:
+                with open(path + 'train_persona.json', 'r') as train_persona:
                     print("Load train_persona")
                     tmp = train_persona.readline()
                     train_persona_tokenized = json.loads(tmp)
-                with open(path + 'train_query.json', 'w') as train_query:
+                with open(path + 'train_query.json', 'r') as train_query:
                     print("Load train_query")
                     tmp = train_query.readline()
                     train_query_tokenized = json.loads(tmp)
-                with open(path + 'train_response.json', 'w') as train_response:
+                with open(path + 'train_response.json', 'r') as train_response:
                     print("Load train_response")
                     tmp = train_response.readline()
                     train_response_tokenized = json.loads(tmp)
                     
-                with open(path + 'val_mbti.json', 'w') as val_mbti:
+                with open(path + 'val_mbti.json', 'r') as val_mbti:
                     print("Load val_mbti")
                     tmp = val_mbti.readline()
                     val_mbti_tokenized = json.loads(tmp)
-                with open(path + 'val_persona.json', 'w') as val_persona:
+                with open(path + 'val_persona.json', 'r') as val_persona:
                     print("Load val_persona")
                     tmp = val_persona.readline()
                     val_persona_tokenized = json.loads(tmp)
-                with open(path + 'val_query.json', 'w') as val_query:
+                with open(path + 'val_query.json', 'r') as val_query:
                     print("Load val_query")
                     tmp = val_query.readline()
                     val_query_tokenized = json.loads(tmp)
-                with open(path + 'val_response.json', 'w') as val_response:
+                with open(path + 'val_response.json', 'r') as val_response:
                     print("Load val_response")
                     tmp = val_response.readline()
                     val_response_tokenized = json.loads(tmp)
             # NLI
             
             # neutral unused
-            with open(path + 'contradiction_pre.json', 'w') as contradiction_pre:
+            with open(path + 'contradiction_pre.json', 'r') as contradiction_pre:
                 print("Load contradiction_pre")
                 tmp = contradiction_pre.readline()
                 contradiction_pre_tokenized = json.loads(tmp)
-            with open(path + 'contradiction_hyp.json', 'w') as contradiction_hyp:
+            with open(path + 'contradiction_hyp.json', 'r') as contradiction_hyp:
                 print("Load contradiction_hyp")
                 tmp = contradiction_hyp.readline()
                 contradiction_hyp_tokenized = json.loads(tmp)
 
-            with open(path + 'entailment_pre.json', 'w') as entailment_pre:
+            with open(path + 'entailment_pre.json', 'r') as entailment_pre:
                 print("Load entailment_pre")
                 tmp = entailment_pre.readline()
                 entailment_pre_tokenized = json.loads(tmp)
-            with open(path + 'entailment_hyp.json', 'w') as entailment_hyp:
+            with open(path + 'entailment_hyp.json', 'r') as entailment_hyp:
                 print("Load entailment_hyp")
                 tmp = entailment_hyp.readline()
                 entailment_hyp_tokenized = json.loads(tmp)
@@ -270,10 +270,10 @@ def train(args):
                                 shuffle=True)
         
     negative_ul_loader = DataLoader(contradiction_nli_dataset,
-                                    batch_Size=args.batch_size,
+                                    batch_size=args.batch_size,
                                     shuffle=True)
     positive_ul_loader = DataLoader(entailment_nli_dataset,
-                                    batch_Size=args.batch_size,
+                                    batch_size=args.batch_size,
                                     shuffle=True)
     
     p_ul_iterator = enumerate(positive_ul_loader)
@@ -394,37 +394,37 @@ def predict(args):
         try:
             print(f"Load tokenized dataset from {args.dumped_token}.")
             if args.dataset_type == 'aihub':
-                with open(path + 'test_qact.json', 'w') as test_qacts:
+                with open(path + 'test_qact.json', 'r') as test_qacts:
                     print("Load test_qact")
                     tmp = test_qacts.readline()
                     test_qact = json.loads(tmp)
-                with open(path + 'test_ract.json', 'w') as test_racts:
+                with open(path + 'test_ract.json', 'r') as test_racts:
                     print("Load train_ract")
                     tmp = test_racts.readline()
                     test_ract = json.loads(tmp)
-                with open(path + 'test_query.json', 'w') as test_query:
+                with open(path + 'test_query.json', 'r') as test_query:
                     print("Load test_query")
                     tmp = test_query.readline()
                     test_query_tokenized = json.loads(tmp)
-                with open(path + 'test_response.json', 'w') as test_response:
+                with open(path + 'test_response.json', 'r') as test_response:
                     print("Load test_response")
                     tmp = test_response.readline()
                     test_response_tokenized = json.loads(tmp)
 
             elif args.dataset_type == 'mbti':
-                with open(path + 'test_mbti.json', 'w') as test_mbti:
+                with open(path + 'test_mbti.json', 'r') as test_mbti:
                     print("Load test_mbti")
                     tmp = test_mbti.readline()
                     test_mbti_tokenized = json.loads(tmp)
-                with open(path + 'test_persona.json', 'w') as test_persona:
+                with open(path + 'test_persona.json', 'r') as test_persona:
                     print("Load test_persona")
                     tmp = test_persona.readline()
                     test_persona_tokenized = json.loads(tmp)
-                with open(path + 'test_query.json', 'w') as test_query:
+                with open(path + 'test_query.json', 'r') as test_query:
                     print("Load test_query")
                     tmp = test_query.readline()
                     test_query_tokenized = json.loads(tmp)
-                with open(path + 'test_response.json', 'w') as test_response:
+                with open(path + 'test_response.json', 'r') as test_response:
                     print("Load test_response")
                     tmp = test_response.readline()
                     test_response_tokenized = json.loads(tmp)
@@ -511,37 +511,37 @@ def evaluation(args):
         try:
             print(f"Load tokenized dataset from {args.dumped_token}.")
             if args.dataset_type == 'aihub':
-                with open(path + 'test_qact.json', 'w') as test_qacts:
+                with open(path + 'test_qact.json', 'r') as test_qacts:
                     print("Load test_qact")
                     tmp = test_qacts.readline()
                     test_qact = json.loads(tmp)
-                with open(path + 'test_ract.json', 'w') as test_racts:
+                with open(path + 'test_ract.json', 'r') as test_racts:
                     print("Load train_ract")
                     tmp = test_racts.readline()
                     test_ract = json.loads(tmp)
-                with open(path + 'test_query.json', 'w') as test_query:
+                with open(path + 'test_query.json', 'r') as test_query:
                     print("Load test_query")
                     tmp = test_query.readline()
                     test_query_tokenized = json.loads(tmp)
-                with open(path + 'test_response.json', 'w') as test_response:
+                with open(path + 'test_response.json', 'r') as test_response:
                     print("Load test_response")
                     tmp = test_response.readline()
                     test_response_tokenized = json.loads(tmp)
 
             elif args.dataset_type == 'mbti':
-                with open(path + 'test_mbti.json', 'w') as test_mbti:
+                with open(path + 'test_mbti.json', 'r') as test_mbti:
                     print("Load test_mbti")
                     tmp = test_mbti.readline()
                     test_mbti_tokenized = json.loads(tmp)
-                with open(path + 'test_persona.json', 'w') as test_persona:
+                with open(path + 'test_persona.json', 'r') as test_persona:
                     print("Load test_persona")
                     tmp = test_persona.readline()
                     test_persona_tokenized = json.loads(tmp)
-                with open(path + 'test_query.json', 'w') as test_query:
+                with open(path + 'test_query.json', 'r') as test_query:
                     print("Load test_query")
                     tmp = test_query.readline()
                     test_query_tokenized = json.loads(tmp)
-                with open(path + 'test_response.json', 'w') as test_response:
+                with open(path + 'test_response.json', 'r') as test_response:
                     print("Load test_response")
                     tmp = test_response.readline()
                     test_response_tokenized = json.loads(tmp)
@@ -681,18 +681,64 @@ def evaluation(args):
     
     
 if __name__ == '__main__':
-    parser = ArgumentParser("EncoderDecoder Model")
-    parser.add_argument("--device", default = "cuda:0" , type = str)
-    #Training
-    parser.add_argument("--batch_size", default = 32, type = int)
-    parser.add_argument("--checkpoint", type = str, 
-                        help = "path to checkpoint")
-    #Model
-    parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kcber-base")
-    parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kcber-base")
-    parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kcber-base")
-    parser.add_argument("--total_epoch", type = int, default = "3")
+    parser = ArgumentParser("Transformers EncoderDecoderModel")
+    parser.add_argument("--do_train", action="store_true")
+    parser.add_argument("--do_predict", action="store_true")
+    parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--word_stat", action="store_true")
+    parser.add_argument("--use_decoder2", action="store_true")
+
+    parser.add_argument("--train_valid_split", type=float, default=0.1)
+
+    parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kcbert-base")
+    parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kcbert-base")
+    parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kcbert-base")
     
-    #Data
-    parser.add_argument("--dataset_type", type = str, default = "aihub")
-    
+    parser.add_argument("--load_checkpoint", action="store_true")
+    parser.add_argument("--checkpoint", type=str, default="./checkpoints/bertoverbert_epoch_5")
+
+    parser.add_argument("--max_source_length", type=int, default=128)
+    parser.add_argument("--max_target_length", type=int, default=32)
+
+    parser.add_argument("--total_epochs", type=int, default=20)
+    parser.add_argument("--eval_epoch", type=int, default=7)
+    parser.add_argument("--print_frequency", type=int, default=-1)
+    parser.add_argument("--warm_up_steps", type=int, default=6000)
+
+    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--beam_size", type=int, default=1)
+    parser.add_argument("--min_length", type=int, default=3)
+    parser.add_argument("--no_repeat_ngram_size", type=int, default=0)
+    parser.add_argument("--length_penalty", type=float, default=1.0)
+    parser.add_argument("--learning_rate", type=float, default=3e-5)
+    parser.add_argument("--warm_up_learning_rate", type=float, default=3e-5)
+
+    parser.add_argument("--save_model_path",
+                        type=str,
+                        default="checkpoints/bertoverbert")
+    parser.add_argument("--save_result_path",
+                        type=str,
+                        default="test_result.tsv")
+    parser.add_argument("--dataset_type",
+                        type=str,
+                        default='aihub')
+    parser.add_argument("--ppl_type",
+                        type=str,
+                        default='sents')
+    '''
+    dumped_token
+        aihub:    ./data/aihub/aihub_tokenized/
+        mbti:   ./data/ECDT2019/mbti_tokenized/
+    '''
+    parser.add_argument("--dumped_token",
+                        type=str,
+                        default=None,
+                        required=True)
+    args = parser.parse_args()
+
+    if args.do_train:
+        train(args)
+    if args.do_predict:
+        predict(args)
+    if args.do_evaluation:
+        evaluation(args)

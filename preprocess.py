@@ -1,8 +1,5 @@
 import json
 from argparse import ArgumentParser 
-#from xlibs import BartTokenizer, RobertaTokenizer 
-#from kobert_tokenizer import KoBERTTokenizer
-#from kobart import get_kobart_tokenizer
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 
 from sklearn.model_selection import train_test_split
@@ -12,7 +9,7 @@ from datasets.dataset import read_aihub_split
 from glob import glob
 import os 
 from os.path import dirname, join, basename
-#tokenize해줘야 함 반드시!
+
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
     dir = args.aihub_train.split('/')[-1]
@@ -25,15 +22,14 @@ def preprocess_aihub_dataset(args):
     val_response_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     test_response_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     
-    train_qact_dict= []
-    val_qact_dict= []
-    test_qact_dict= []
+    train_qact_tokenized= {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    val_qact_tokenized= {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    test_qact_tokenized= {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     
-    train_ract_dict = []
-    val_ract_dict= []
-    test_ract_dict = []
-    # tokenizer = get_kobart_tokenizer()
-    # tokenizer = tokenizer.from_pretrained('./pretrained_models/kobart-base-v2')
+    train_ract_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    val_ract_tokenized= {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+    test_ract_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
+
     tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
 
 
@@ -54,20 +50,62 @@ def preprocess_aihub_dataset(args):
         )
         
         
-        #act는 tokenize할 필요X. 단순 레이블링
-        train_qact_dict.append(train_qact)
-        val_qact_dict.append(val_qact)
-        test_qact_dict.append(test_qact)
+        for k, v in tokenizer(
+            train_qact,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            train_qact_tokenized[k] += v
         
-        train_ract_dict.append(train_ract)
-        val_ract_dict.append(val_ract)
-        test_ract_dict.append(test_ract)
-        
-        
+        for k, v in tokenizer(
+            val_qact,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            val_qact_tokenized[k] += v
+            
+        for k, v in tokenizer(
+            test_qact,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            test_qact_tokenized[k] += v
+            
+            
+            
+        for k, v in tokenizer(
+            train_ract,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            train_ract_tokenized[k] += v
+            
+        for k, v in tokenizer(
+            val_ract,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            val_ract_tokenized[k] += v
+            
+            
+        for k, v in tokenizer(
+            test_ract,
+            truncation = True,
+            padding = "max_length",
+            max_length = args.max_srclen_aihub 
+        ).items():
+            test_ract_tokenized[k] += v
+            
+            
         for k, v in tokenizer(
             train_query,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_srclen_aihub 
         ).items():
             train_query_tokenized[k] += v
@@ -75,7 +113,7 @@ def preprocess_aihub_dataset(args):
         for k, v in tokenizer(
             val_query,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_srclen_aihub
         ).items():
             val_query_tokenized[k] += v
@@ -83,7 +121,7 @@ def preprocess_aihub_dataset(args):
         for k, v in tokenizer(
             test_query,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_srclen_aihub
         ).items():
             test_query_tokenized[k] += v
@@ -91,7 +129,7 @@ def preprocess_aihub_dataset(args):
         for k, v in tokenizer(
             train_response,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_tgtlen_aihub 
         ).items():
             
@@ -100,7 +138,7 @@ def preprocess_aihub_dataset(args):
         for k, v in tokenizer(
             val_response,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_tgtlen_aihub
         ).items():
             val_response_tokenized[k] += v
@@ -108,7 +146,7 @@ def preprocess_aihub_dataset(args):
         for k, v in tokenizer(
             test_response,
             truncation = True,
-            padding = True,
+            padding = "max_length",
             max_length = args.max_tgtlen_aihub
         ).items():
             test_response_tokenized[k] += v
@@ -137,25 +175,26 @@ def preprocess_aihub_dataset(args):
         json.dump(test_response_tokenized, test_response)
     
     with open(path + 'train_qact.json', 'w') as train_qact:
-        json.dump(train_qact_dict, train_qact)
+        json.dump(train_qact_tokenized, train_qact)
     with open(path + 'train_ract.json', 'w') as train_ract:
-        json.dump(train_ract_dict, train_ract)
+        json.dump(train_ract_tokenized, train_ract)
     
     with open(path + 'val_qact.json', 'w') as val_qact:
-        json.dump(val_qact_dict, val_qact)
+        json.dump(val_qact_tokenized, val_qact)
     with open(path + 'val_ract.json', 'w') as val_ract:
-        json.dump(val_ract_dict, val_ract)
+        json.dump(val_ract_tokenized, val_ract)
     
     with open(path + 'test_qact.json', 'w') as test_qact:
-        json.dump(test_qact_dict, test_qact)
+        json.dump(test_qact_tokenized, test_qact)
     with open(path + 'test_ract.json', 'w') as test_ract:
-        json.dump(test_ract_dict, test_ract)
+        json.dump(test_ract_tokenized, test_ract)
     
     print("Completed Dumping personas, queries and reponses...\n")
     
-def tokenize_nli_dataset(args, tokenizer, path):
+def tokenize_nli_dataset(args, path):
     print("Tokenize nli data...")
     
+    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
     n_pre, n_hyp, c_pre, c_hyp, e_pre, e_hyp = read_nli_split(args.nli)
     
     n_pre_tokenized = {
@@ -231,8 +270,8 @@ def tokenize_nli_dataset(args, tokenizer, path):
 def preprocess_mbti_dataset(args):
     print("Preprocessing...\n")
     # split 
-    train_mbti, train_persona, train_query, train_response = read_mbti_split('data/mbti/qna1.tsv') # split
-    test_mbti, test_persona, test_query, test_response = read_mbti_split('data/mbti/qna1.tsv') # split 
+    train_mbti, train_persona, train_query, train_response = read_mbti_split(args.train) # split
+    test_mbti, test_persona, test_query, test_response = read_mbti_split(args.test) # split 
     assert len(train_persona) == len(train_mbti) == len(train_query) == len(train_response)
     
     train_mbti, val_mbti, train_persona, val_persona, train_query, val_query, train_response, val_response = train_test_split(
@@ -242,9 +281,7 @@ def preprocess_mbti_dataset(args):
         train_response,
         test_size=args.split_rate
     )
-    
-    #tokenizer = get_kobart_tokenizer()
-    #tokenizer = tokenizer.from_pretrained("./pretrained_models/kobart-base-v2/")
+
     tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
     
     train_persona_tokenized = {
@@ -360,6 +397,8 @@ def preprocess_mbti_dataset(args):
     
     print("Saving Tokenized dict\n")
     path = './data/mbti/mbti_tokenized/'
+    if not os.path.exists(path):
+        os.makedirs(path)
         
     with open(path + 'train_mbti.json', 'w') as train_mbti:
         json.dump(train_mbti_tokenized, train_mbti)
@@ -432,5 +471,7 @@ if __name__ == '__main__':
 
     if args.dataset_type == "mbti":
         preprocess_mbti_dataset(args)
+        tokenize_nli_dataset(args, './data/mbti/mbti_tokenized/')
     elif args.dataset_type == "aihub":
         preprocess_aihub_dataset(args)
+        tokenize_nli_dataset(args, './data/aihub/aihub_tokenized/')
