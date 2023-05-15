@@ -14,6 +14,7 @@ def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
     dir = args.aihub_train.split('/')[-1]
     aihub_files = list(glob(join(args.aihub_train, "*.*")))
+    
     train_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     val_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     test_query_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
@@ -159,6 +160,7 @@ def preprocess_aihub_dataset(args):
     if not os.path.exists(os.path.join(path, dir)):
         os.makedirs(os.path.join(path,dir))
     path = path + dir + '/'
+    
     with open(path + 'train_query.json', 'w') as train_query:
         json.dump(train_query_tokenized, train_query)
     with open(path + 'train_response.json', 'w') as train_response:
@@ -190,6 +192,8 @@ def preprocess_aihub_dataset(args):
         json.dump(test_ract_tokenized, test_ract)
     
     print("Completed Dumping personas, queries and reponses...\n")
+    tokenize_nli_dataset(args, path)
+    print("Complted Dumping nli dataset...\n")
     
 def tokenize_nli_dataset(args, path):
     print("Tokenize nli data...")
@@ -428,7 +432,7 @@ def preprocess_mbti_dataset(args):
         json.dump(test_response_tokenized, test_response)
     
     print("Completed Dumping personas, queries and reponses...\n")
-    tokenize_nli_dataset(args, tokenizer, path)
+    tokenize_nli_dataset(args, path)
     print("Complted Dumping nli dataset...\n")
     
 if __name__ == '__main__':
@@ -471,7 +475,5 @@ if __name__ == '__main__':
 
     if args.dataset_type == "mbti":
         preprocess_mbti_dataset(args)
-        tokenize_nli_dataset(args, './data/mbti/mbti_tokenized/')
     elif args.dataset_type == "aihub":
         preprocess_aihub_dataset(args)
-        tokenize_nli_dataset(args, './data/aihub/aihub_tokenized/')
