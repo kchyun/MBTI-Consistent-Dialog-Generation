@@ -2,7 +2,9 @@ import json
 from argparse import ArgumentParser 
 #from xlibs import BartTokenizer, RobertaTokenizer 
 #from kobert_tokenizer import KoBERTTokenizer
-from kobart import get_kobart_tokenizer
+#from kobart import get_kobart_tokenizer
+from transformers import AutoTokenizer, AutoModelForMaskedLM
+
 from sklearn.model_selection import train_test_split
 from datasets.dataset import read_nli_split 
 from datasets.dataset import read_mbti_split
@@ -30,8 +32,10 @@ def preprocess_aihub_dataset(args):
     train_ract_dict = []
     val_ract_dict= []
     test_ract_dict = []
-    tokenizer = get_kobart_tokenizer()
-    tokenizer = tokenizer.from_pretrained('./pretrained_models/kobart-base-v2')
+    # tokenizer = get_kobart_tokenizer()
+    # tokenizer = tokenizer.from_pretrained('./pretrained_models/kobart-base-v2')
+    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+
 
     for file in aihub_files:
         
@@ -239,8 +243,9 @@ def preprocess_mbti_dataset(args):
         test_size=args.split_rate
     )
     
-    tokenizer = get_kobart_tokenizer()
-    tokenizer = tokenizer.from_pretrained("./pretrained_models/kobart-base-v2/")
+    #tokenizer = get_kobart_tokenizer()
+    #tokenizer = tokenizer.from_pretrained("./pretrained_models/kobart-base-v2/")
+    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
     
     train_persona_tokenized = {
         k : v for k, v in tokenizer(
