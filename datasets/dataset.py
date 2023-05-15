@@ -8,13 +8,18 @@ https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=
 """
 # Aihub : 다자 대화 제외해야 함. 
 class AIHubDataset():
-    def __init__(self, queries, responses, act, device):
+    def __init__(self, q_act, r_act, queries, responses, device):
+        self.q_act = q_act
+        self.r_act = r_act # unused?
         self.queries = queries 
         self.responses = responses 
-        self.act = act # speaker act of response
         self.device = device 
     
     def __getitem__(self, idx):
+        q_act = {
+            key : torch.tensor(val[idx]).to(self.device)
+            for key, val in self.q_act.items()
+        }
         query = {
             key : torch.tensor(val[idx]).to(self.device)
             for key, val in self.queries.items()
@@ -23,21 +28,16 @@ class AIHubDataset():
             key : torch.tensor(val[idx]).to(self.device)
             for key, val in self.responses.items()
         }
-        act = {
-            key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.act.items()
-        }
-        
-        
-        return {'act' : act,  'query' : query, 'response' : response}
+
+        return {'q_act' : q_act, 'query' : query, 'response' : response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
 class MBTIDataset(Dataset):
-    def __init__(self, a_mbti, questions, answers, device):
+    def __init__(self, a_mbti, personas, queries, responses, device):
         self.a_mbti = a_mbti 
-        self.queries = questions
-        self.responses = answers 
+        self.queries = torch.concat(personas, queries)
+        self.responses = responses 
         self.device = device 
         
     def __getitem__(self, idx):
@@ -51,7 +51,7 @@ class MBTIDataset(Dataset):
         }
         response = {
             key: torch.tensor(val[idx]).to(self.device)
-            for key, val in self.labels.items()
+            for key, val in self.responses.items()
         }
         return {'a_persona' : a_mbti, 'query': query, 'response': response}
 
