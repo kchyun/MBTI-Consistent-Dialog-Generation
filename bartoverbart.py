@@ -327,9 +327,9 @@ def train(args):
             loss_2 = outputs_2.loss
             ul_loss = ul_outputs.loss
 
-            loss_prt = loss.cpu().detach().numpy() if CUDA_AVAILABLE else loss.detach().numpy()
-            loss_2_prt = loss_2.cpu().detach().numpy() if CUDA_AVAILABLE else loss_2.detach().numpy()
-            ul_loss_prt = ul_loss.cpu().detach().numpy() if CUDA_AVAILABLE else ul_loss.detach().numpy()
+            loss_prt = loss.cpu().detach().numpy() if torch.cuda.is_available() else loss.detach().numpy()
+            loss_2_prt = loss_2.cpu().detach().numpy() if torch.cuda.is_available() else loss_2.detach().numpy()
+            ul_loss_prt = ul_loss.cpu().detach().numpy() if torch.cuda.is_available() else ul_loss.detach().numpy()
             loss_prt, loss_2_prt, ul_loss_prt = round(float(loss_prt),3), round(float(loss_2_prt),3), round(float(ul_loss_prt),3)
 
             if step <= args.warm_up_steps:
@@ -631,7 +631,7 @@ def evaluation(args):
         raise (ValueError)
 
     print(f"Perplexity on test set is {round(float(ppl_1.cpu().numpy()),3)} and {round(float(ppl_2.cpu().numpy()),3)}."
-          ) if CUDA_AVAILABLE else (
+          ) if torch.cuda.is_available() else (
         f"Perplexity on test set is {round(float(ppl_1.numpy()),3)} and {round(float(ppl_2.numpy()),3)}.")
 
     if args.word_stat:
