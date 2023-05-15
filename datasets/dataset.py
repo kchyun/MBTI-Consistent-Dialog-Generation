@@ -29,7 +29,7 @@ class AIHubDataset():
             for key, val in self.responses.items()
         }
 
-        return {'q_act' : q_act, 'query' : query, 'response' : response}
+        return {'persona' : q_act, 'query' : query, 'response' : response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
@@ -53,7 +53,7 @@ class MBTIDataset(Dataset):
             key: torch.tensor(val[idx]).to(self.device)
             for key, val in self.responses.items()
         }
-        return {'a_persona' : a_mbti, 'query': query, 'response': response}
+        return {'persona' : a_mbti, 'query': query, 'response': response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
@@ -77,6 +77,7 @@ class NLIDataset(Dataset):
 
     def __len__(self):
         return len(self.pre['input_ids'])
+    
 def read_aihub_split(split_dir):
     query = []
     response = []

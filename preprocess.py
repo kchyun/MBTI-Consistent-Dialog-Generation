@@ -396,16 +396,16 @@ if __name__ == '__main__':
     parser = ArgumentParser("Preprocessing Dataset")
     parser.add_argument("--split_rate", type = float , default = 0.1)
     parser.add_argument("--train", type = str, 
-                        default = "",
+                        default = "./data/aihub/kakao",
                         help = "path to train dataset")
     parser.add_argument("--test", type = str, 
-                        default = "",
+                        default = "./data/aihub/kakao",
                         help = "path to test dataset (valid)")
     parser.add_argument("--nli", type = str,
                         default = "data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv",
                         help = "path to nli dataset")
     parser.add_argument("--dataset_type", type = str,
-                        default = "mbti")
+                        default = "aihub")
                         #required = True)
     parser.add_argument("--max_srclen", type = int,
                         default = 500,
@@ -426,15 +426,11 @@ if __name__ == '__main__':
                         default = 64,
                         help = "max lenght of target aihub data")
     parser.add_argument("--aihub_train", type = str,
-                        default = "data/aihub/TL_01. KAKAO(1)",
+                        default = "data/aihub/kakao",
                         help = "path to aihub dataset")
     args = parser.parse_args()
-    """
+
     if args.dataset_type == "mbti":
         preprocess_mbti_dataset(args)
     elif args.dataset_type == "aihub":
         preprocess_aihub_dataset(args)
-    
-    """
-
-    preprocess_aihub_dataset(args)

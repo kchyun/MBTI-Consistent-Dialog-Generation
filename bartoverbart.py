@@ -688,10 +688,10 @@ if __name__ == '__main__':
     parser.add_argument("--checkpoint", type = str, 
                         help = "path to checkpoint")
     #Model
-    parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kobart-base-v2")
-    parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kobart-base-v2")
-    parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kobart-based-v2")
-    parser.add_argument("--total_epoch", type = int, default = "100")
+    parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kcber-base")
+    parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kcber-base")
+    parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kcber-base")
+    parser.add_argument("--total_epoch", type = int, default = "3")
     
     #Data
     parser.add_argument("--dataset_type", type = str, default = "aihub")
