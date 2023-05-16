@@ -12,7 +12,6 @@ from evaluations import eval_distinct
 from xlibs import EncoderDecoderModel 
 from xlibs import AdamW 
 
-# from kobart import get_kobart_tokenizer
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 
 
@@ -451,9 +450,9 @@ def predict(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bartoverbart_{args.eval_epoch}"
+        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bartoverbart_{args.eval_epoch}"
+        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -568,9 +567,9 @@ def evaluation(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bartoverbart_{args.eval_epoch}"
+        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bartoverbart_{args.eval_epoch}"
+        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -730,7 +729,7 @@ if __name__ == '__main__':
     '''
     dumped_token
         aihub:    ./data/aihub/aihub_tokenized/
-        mbti:   ./data/ECDT2019/mbti_tokenized/
+        mbti:   ./data/mbti/mbti_tokenized/
     '''
     parser.add_argument("--dumped_token",
                         type=str,
