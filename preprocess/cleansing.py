@@ -1,10 +1,10 @@
 import re
-import emoji
 from soynlp.normalizer import repeat_normalize
 from os.path import join
 import json
 from glob import glob
 import pandas as pd
+from hanspell import spell_checker
 
 def is_proper_length(sentence):
     return 8 <= len(sentence) and len(sentence) <= 512
@@ -15,17 +15,18 @@ def clean(sentence):
     r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)')
 
     sentence = pattern.sub(' ', sentence)
-    sentence = emoji.replace_emoji(sentence, replace='') #emoji 삭제
     sentence = url_pattern.sub('', sentence)
     sentence = sentence.strip()
     sentence = repeat_normalize(sentence, num_repeats=2)
 
-    return sentence
+    hanspell_sent = spell_checker.check(sentence)
+
+    return hanspell_sent
 
 def clean_aihub_dataset():
     print("Cleansing Aihub dataset...\n")
     dir = '.\\data\\aihub\\kakao'
-    output_path = './data/aihub/kakao/kakao_cleaned.jsonl'
+    output_path = './data/aihub/kakao_cleaned.jsonl'
 
     aihub_files = list(glob(join(dir, "*\\*.*")))
 
@@ -41,8 +42,8 @@ def clean_aihub_dataset():
 
                 for i in range(len(lines)):
                     if i == len(lines) - 1: break
-                    q = lines[i]["norm_text"]
-                    r = lines[i+1]["norm_text"]
+                    q = clean(lines[i]["norm_text"])
+                    r = clean(lines[i+1]["norm_text"])
 
                     conversation = {'query': q, 'response': r}
                     conversations.append(conversation)
@@ -66,8 +67,14 @@ def clean_mbti_dataset(file_name):
         data = pd.read_csv(f'./data/mbti/{file_name}', sep='\t', names=['id', 'article_id', 'menu_id', 'question', 'answer', 'q_mbti', 'a_mbti'])   
 
     for idx in range(len(data)):
-        data.loc[idx, 'question'] = data.loc[idx, 'question']
-        data.loc[idx, 'answer'] = data.loc[idx, 'answer']
+        q = data.loc[idx, 'question']
+        a = data.loc[idx, 'answer']
+
+        if is_proper_length(q) and is_proper_length(a):
+            data.loc[idx, 'question'] = clean(q)
+            data.loc[idx, 'answer'] = clean(a)
+        else:
+            data.drop(index = idx)
 
     if file_name == "qna.tsv":
         data = data.drop(data.columns[0], axis=1)
@@ -78,4 +85,6 @@ def clean_mbti_dataset(file_name):
     print(f"Completed Cleansing {file_name} dataset queries and reponses...\n")
 
 if __name__ == '__main__':
+    clean_aihub_dataset()
     clean_mbti_dataset('qna.tsv')
+    clean_mbti_dataset('multiple_qna.tsv')
