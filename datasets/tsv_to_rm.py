@@ -3,7 +3,9 @@ import pandas as pd
 import random
 
 tsv_path = "./data/mbti/multiple_qna.tsv"
-output_path = "./data/mbti/mbti_rm.jsonl"
+output_path = "./data/mbti/mbti_rm_ESTJ.jsonl"
+chosen_keyword = "estj"
+rejected_keyword = 'f'
 
 df = pd.read_csv(tsv_path, sep='\t', names=[
                  'id', 'article_id', 'menu_id', 'content', 'comment', 'content_mbti', 'comment_mbti'])
@@ -19,9 +21,9 @@ for idx, conversation in df.iterrows():
         output.append(
             {'prompt': df.loc[0]['content'], 'chosen': [], 'rejected': []})
 
-        if conversation['comment_mbti'].find('t'):
+        if conversation['comment_mbti'].find(chosen_keyword) != -1:
             output[0]['chosen'].append(conversation['comment'])
-        else:
+        elif conversation['comment_mbti'].find(rejected_keyword) != -1:
             output[0]['rejected'].append(conversation['comment'])
 
         continue
@@ -45,9 +47,9 @@ for idx, conversation in df.iterrows():
             {'prompt': conversation['content'], 'chosen': [], 'rejected': []})
 
     # comment_mbti에 t가 들어가 있으면 chosen, 아니면 rejected
-    if conversation['comment_mbti'].find('t') != -1:
+    if conversation['comment_mbti'].find(chosen_keyword) != -1:
         output[output_idx]['chosen'].append(conversation['comment'])
-    else:
+    elif conversation['comment_mbti'].find(rejected_keyword) != -1:
         output[output_idx]['rejected'].append(conversation['comment'])
 
 if len(output[output_idx]['chosen']) > 0 and len(output[output_idx]['rejected']) > 0:
