@@ -4,6 +4,7 @@ from soynlp.normalizer import repeat_normalize
 from os.path import join
 import json
 from glob import glob
+import pandas as pd
 
 def is_proper_length(sentence):
     return 8 <= len(sentence) and len(sentence) <= 512
@@ -22,7 +23,7 @@ def clean(sentence):
     return sentence
 
 def clean_aihub_dataset():
-    print("Preprocessing...\n")
+    print("Cleansing Aihub dataset...\n")
     dir = '.\\data\\aihub\\kakao'
     output_path = './data/aihub/kakao/kakao_cleaned.jsonl'
 
@@ -53,7 +54,28 @@ def clean_aihub_dataset():
     with open(output_path, 'w', encoding='utf-8') as kakao_cleaned:
         json.dump(conversations, kakao_cleaned, indent = 4 ,ensure_ascii=False)
     
-    print("Completed Cleansing queries and reponses...\n")
+    print("Completed Cleansing Aihub dataset queries and reponses...\n")
+
+def clean_mbti_dataset(file_name):
+    print(f"Cleansing {file_name} dataset...\n")
+
+    if file_name == "qna.tsv":
+        data = pd.read_csv(f'./data/mbti/{file_name}', sep='\t')
+
+    elif file_name == "multiple_qna.tsv":
+        data = pd.read_csv(f'./data/mbti/{file_name}', sep='\t', names=['id', 'article_id', 'menu_id', 'question', 'answer', 'q_mbti', 'a_mbti'])   
+
+    for idx in range(len(data)):
+        data.loc[idx, 'question'] = data.loc[idx, 'question']
+        data.loc[idx, 'answer'] = data.loc[idx, 'answer']
+
+    if file_name == "qna.tsv":
+        data = data.drop(data.columns[0], axis=1)
+        data.to_csv('./data/mbti/qna_cleaned.tsv', sep='\t')
+    elif file_name == "multiple_qna.tsv":
+        data.to_csv('./data/mbti/multiple_qna_cleaned.tsv', sep='\t', header=['id', 'article_id', 'menu_id', 'question', 'answer', 'q_mbti', 'a_mbti'])
+    
+    print(f"Completed Cleansing {file_name} dataset queries and reponses...\n")
 
 if __name__ == '__main__':
-    clean_aihub_dataset()
+    clean_mbti_dataset('qna.tsv')
