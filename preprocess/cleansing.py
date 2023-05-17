@@ -9,7 +9,47 @@ from hanspell import spell_checker
 def is_proper_length(sentence):
     return 8 <= len(sentence) and len(sentence) <= 512
 
-def clean(sentence): 
+def get_mbti_keywords():
+    prefixes = {
+        'en': ['엔', '엥'],
+        'es': ['엣'],
+        'in': ['인', '잉'],
+        'is': ['잇']
+    }
+    suffixes = {
+        'fp': ['프피', '뿌피', '뿌삐', '픞', '픕'],
+        'fj': ['프제', '픚'],
+        'tp': ['팁', '팊', '티피', '티삐'],
+        'tj': ['티제', '팆']
+    }
+
+    korean_mbti_dic = {}
+
+    for p_eng, p_kors in prefixes.items():
+        for s_eng, s_kors in suffixes.items():
+            for p in p_kors:
+                for s in s_kors:
+                    korean_mbti_dic[p + s] = p_eng + s_eng
+
+    return korean_mbti_dic
+
+def cleansing_mbti_keywords(sentence):
+    # E - I | N - S | F - T | J - P (alphabet order)
+    MBTI_UPPER_LIST = ["ENFJ", "ENFP", "ENTJ", "ENTP", "ESFJ", "ESFP", "ESTJ", "ESTP", "INFJ", "INFP", "INTJ", "INTP", "ISFJ", "ISFP", "ISTJ", "ISTP"]
+    MBTI_KEYWORDS = get_mbti_keywords()
+
+    # searching English mbti substring
+    for mbti in MBTI_UPPER_LIST:
+        sentence = sentence.replace(mbti, mbti.lower())
+        
+    # if not, searching Korean mbti keyword
+    for keyword in MBTI_KEYWORDS.keys():
+        sentence = sentence.replace(keyword, MBTI_KEYWORDS[keyword])
+    
+    # if there is no keywords, return None
+    return sentence
+
+def pattern_cleansing(sentence): 
     pattern = re.compile(f'[^ .,?!/@$%~％·∼()\x00-\x7Fㄱ-ㅣ가-힣]+')
     url_pattern = re.compile(
     r'https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)')
@@ -19,9 +59,7 @@ def clean(sentence):
     sentence = sentence.strip()
     sentence = repeat_normalize(sentence, num_repeats=2)
 
-    hanspell_sent = spell_checker.check(sentence)
-
-    return hanspell_sent
+    return sentence
 
 def clean_aihub_dataset():
     print("Cleansing Aihub dataset...\n")
@@ -42,8 +80,8 @@ def clean_aihub_dataset():
 
                 for i in range(len(lines)):
                     if i == len(lines) - 1: break
-                    q = clean(lines[i]["norm_text"])
-                    r = clean(lines[i+1]["norm_text"])
+                    q = pattern_cleansing(lines[i]["norm_text"])
+                    r = pattern_cleansing(lines[i+1]["norm_text"])
 
                     conversation = {'query': q, 'response': r}
                     conversations.append(conversation)
@@ -71,10 +109,23 @@ def clean_mbti_dataset(file_name):
         a = data.loc[idx, 'answer']
 
         if is_proper_length(q) and is_proper_length(a):
-            data.loc[idx, 'question'] = clean(q)
-            data.loc[idx, 'answer'] = clean(a)
+            try:
+                q = spell_checker.check(q).checked
+                a = spell_checker.check(a).checked
+
+                q = cleansing_mbti_keywords(q)
+                a = cleansing_mbti_keywords(a)
+
+                data.loc[idx, 'question'] = pattern_cleansing(q)
+                data.loc[idx, 'answer'] = pattern_cleansing(a)
+            except:
+                data.drop(index = idx, inplace = True)
+                continue
         else:
-            data.drop(index = idx)
+            data.drop(index = idx, inplace = True)
+        
+        if idx % 1000 == 0:
+            print(f"{idx}'s rows cleaning done")
 
     if file_name == "qna.tsv":
         data = data.drop(data.columns[0], axis=1)
@@ -85,6 +136,6 @@ def clean_mbti_dataset(file_name):
     print(f"Completed Cleansing {file_name} dataset queries and reponses...\n")
 
 if __name__ == '__main__':
-    clean_aihub_dataset()
-    clean_mbti_dataset('qna.tsv')
-    clean_mbti_dataset('multiple_qna.tsv')
+    # clean_aihub_dataset()
+    # clean_mbti_dataset('qna.tsv')
+    # clean_mbti_dataset('multiple_qna.tsv')
