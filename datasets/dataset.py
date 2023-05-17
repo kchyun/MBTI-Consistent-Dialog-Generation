@@ -88,7 +88,7 @@ def read_aihub_split(split_dir):
             data = json.load(file)
             info = data["info"][0]
             lines = info["annotations"]["lines"]
-            print(len(lines))
+            # print(len(lines))
             for i in range(len(lines)):
                 if i == len(lines) - 1: break
                 q = lines[i]["norm_text"]
@@ -105,7 +105,7 @@ def read_aihub_split(split_dir):
     except FileNotFoundError:
         print("Sorry! File not found!\n")
     
-    print("Complete!")
+    # print("Complete!")
     return q_act, query, r_act, response
     
 def read_nli_split(split_dir):
@@ -153,18 +153,28 @@ def read_mbti_split(split_dir):
             for line in src:
                 _, _, _, _, q, a, _, a_mbti = line.split("\t")
 
-                q = q.replace("\n", " ").replace("[SEP]", " ")
-                a = a.replace("\n", " ").replace("[SEP]", " ")
+                q = q.replace("\n", " ").replace("[SEP]", " ").strip()
+                a = a.replace("\n", " ").replace("[SEP]", " ").strip()
 
-                # TBD
+                persona_sentence = ''
+                
+                
                 if "t" in a_mbti:
-                    persona.append("T_sentence")
+                    persona_sentence += "상황의 이유와 결과가 궁금하며, 해결책을 제시합니다. 사실을 바탕으로 이성적이고 논리적으로 이야기합니다."
                 elif "f" in a_mbti:
-                    persona.append("F_sentence")
+                    persona_sentence += "상대방의 기분이 어떤지 공감, 축하 또는 위로합니다. 유연하고 융통성 있게 대처합니다." 
                 else:
                     raise (ValueError)
-
-                mbti.append(a_mbti.replace("\n", ""))
+                
+                if "n" in a_mbti:
+                    persona_sentence += "상상력이 풍부하여 비유적이고 추상적이다. 직관적이고 직감을 중요하게 생각한다."
+                elif "s" in a_mbti:
+                    persona_sentence += "감각을 통해 느낀 경험과 사실이 중요하다. 규칙과 원리를 중요하게 생각한다."
+                else:
+                    raise (ValueError)
+                
+                mbti.append(a_mbti.strip())
+                persona.append(persona_sentence)
                 query.append(q)
                 answer.append(a)
 
@@ -172,6 +182,7 @@ def read_mbti_split(split_dir):
         print(f"Sorry! The file {split_dir} can't be found.")
 
     return mbti, persona, query, answer
+
 def create_encoder_input():
     pass
 
