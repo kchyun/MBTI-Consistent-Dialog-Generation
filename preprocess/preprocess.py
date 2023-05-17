@@ -1,6 +1,6 @@
 import json
 from argparse import ArgumentParser 
-from transformers import AutoTokenizer, AutoModelForMaskedLM
+from transformers import AutoTokenizer, AutoModelForMaskedLM,  PreTrainedTokenizerFast
 
 from sklearn.model_selection import train_test_split
 from datasets.dataset import read_nli_split 
@@ -31,8 +31,12 @@ def preprocess_aihub_dataset(args):
     val_ract_tokenized= {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
     test_ract_tokenized = {"input_ids" : [], "token_type_ids" : [], "attention_mask" : []}
 
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
-
+    if args.base_model == 'kcbert':
+        tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    if args.base_model == 'kogpt':
+        tokenizer = PreTrainedTokenizerFast.from_pretrained('./pretrained_models/kogpt2-base-v2',
+  bos_token='</s>', eos_token='</s>', unk_token='<unk>',
+  pad_token='<pad>', mask_token='<mask>')
 
     for file in aihub_files:
         
@@ -156,7 +160,7 @@ def preprocess_aihub_dataset(args):
     
     print("Saving Tokenized dict\n")
     
-    path = './data/aihub/aihub_tokenized/'
+    path = './data/{}/aihub/aihub_tokenized/'.format(args.base_model)
     if not os.path.exists(os.path.join(path, dir)):
         os.makedirs(os.path.join(path,dir))
     path = path + dir + '/'
@@ -197,8 +201,13 @@ def preprocess_aihub_dataset(args):
     
 def tokenize_nli_dataset(args, path):
     print("Tokenize nli data...")
-    
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    if args.basemodel == 'kcbert':
+        tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    if args.basemodel == 'kogpt':
+        tokenizer = PreTrainedTokenizerFast.from_pretrained('./pretrained_models/kogpt2-base-v2',
+  bos_token='</s>', eos_token='</s>', unk_token='<unk>',
+  pad_token='<pad>', mask_token='<mask>')
+        
     n_pre, n_hyp, c_pre, c_hyp, e_pre, e_hyp = read_nli_split(args.nli)
     
     n_pre_tokenized = {
@@ -286,8 +295,13 @@ def preprocess_mbti_dataset(args):
         test_size=args.split_rate
     )
 
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
-    
+    if args.base_model == 'kcbert':
+        tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    elif args.base_model == 'kogpt':
+        tokenizer = PreTrainedTokenizerFast.from_pretrained('./pretrained_models/kogpt2-base-v2',
+  bos_token='</s>', eos_token='</s>', unk_token='<unk>',
+  pad_token='<pad>', mask_token='<mask>')
+        
     train_persona_tokenized = {
         k : v for k, v in tokenizer(
             train_persona,
@@ -400,7 +414,7 @@ def preprocess_mbti_dataset(args):
     }
     
     print("Saving Tokenized dict\n")
-    path = './data/mbti/mbti_tokenized/'
+    path = './data/{}/mbti/mbti_tokenized/'.format(args.base_model)
     if not os.path.exists(path):
         os.makedirs(path)
         
@@ -451,10 +465,10 @@ if __name__ == '__main__':
                         default = "aihub")
                         #required = True)
     parser.add_argument("--max_srclen", type = int,
-                        default = 500,
+                        default = 64,
                         help = "max length of source mbti data")
     parser.add_argument("--max_tgtlen", type = int,
-                        default = 500,
+                        default = 64,
                         help = "max length of target mbti data")
     parser.add_argument("--max_srclen_nli", type = int,
                         default = 64,
@@ -467,10 +481,13 @@ if __name__ == '__main__':
                         help = "max length of source aihub data")
     parser.add_argument("--max_tgtlen_aihub", type = int,
                         default = 64,
-                        help = "max lenght of target aihub data")
+                        help = "max length of target aihub data")
     parser.add_argument("--aihub_train", type = str,
                         default = "data/aihub/kakao",
                         help = "path to aihub dataset")
+    parser.add_argument("--base_model", type = str,
+                        default = "kcbert",
+                        help = "base model type : kcbert or kogpt")
     args = parser.parse_args()
 
     if args.dataset_type == "mbti":
