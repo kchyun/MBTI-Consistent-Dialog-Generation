@@ -3,13 +3,15 @@ from argparse import ArgumentParser
 from transformers import AutoTokenizer, AutoModelForMaskedLM,  PreTrainedTokenizerFast
 
 from sklearn.model_selection import train_test_split
-from datasets.dataset import read_nli_split 
-from datasets.dataset import read_mbti_split
-from datasets.dataset import read_aihub_split
+
 from glob import glob
 import os 
 from os.path import dirname, join, basename
-
+import sys 
+sys.path.append('.')
+from datasets.dataset import read_nli_split 
+from datasets.dataset import read_mbti_split
+from datasets.dataset import read_aihub_split
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
     dir = args.aihub_train.split('/')[-1]
@@ -201,9 +203,9 @@ def preprocess_aihub_dataset(args):
     
 def tokenize_nli_dataset(args, path):
     print("Tokenize nli data...")
-    if args.basemodel == 'kcbert':
+    if args.base_model == 'kcbert':
         tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
-    if args.basemodel == 'kogpt':
+    if args.base_model == 'kogpt':
         tokenizer = PreTrainedTokenizerFast.from_pretrained('./pretrained_models/kogpt2-base-v2',
   bos_token='</s>', eos_token='</s>', unk_token='<unk>',
   pad_token='<pad>', mask_token='<mask>')
