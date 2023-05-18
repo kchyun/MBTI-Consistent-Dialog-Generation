@@ -22,7 +22,7 @@ device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cp
 
 # Settings
 dataset_name = "aihub"
-model_path = "./beomi/kcbert-base"
+model_path = "beomi/kcbert-base"
 checkpoint_path = "./checkpoints/" + dataset_name + "/bertoverbert_10000"
 save_model_path = "./checkpoints/" + dataset_name + "/bertoverbert"
 dumped_token_path = "./data/" + dataset_name + "/" + dataset_name + "_tokenized/"
