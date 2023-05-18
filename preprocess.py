@@ -11,10 +11,18 @@ import os
 from os.path import dirname, join, basename
 
 
+# Settings
+model_path = "./beomi/kcbert-base"
+train_data_path = "./data/aihub/TL_01. KAKAO(1)"
+test_data_path = "./data/aihub/TL_01. KAKAO(1)"
+nli_data_path = "./data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv"
+dataset_type = "aihub"
+
+
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
-    dir = args.aihub_train.split('/')[-1]
-    aihub_files = list(glob(join(args.aihub_train, "*.*")))
+    dir = args.train.split('/')[-1]
+    aihub_files = list(glob(join(args.train, "*.*")))
 
     train_query_tokenized = {"input_ids": [],
                              "token_type_ids": [], "attention_mask": []}
@@ -44,7 +52,7 @@ def preprocess_aihub_dataset(args):
     test_ract_tokenized = {"input_ids": [],
                            "token_type_ids": [], "attention_mask": []}
 
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
     for file in aihub_files:
 
@@ -210,7 +218,7 @@ def preprocess_aihub_dataset(args):
 def tokenize_nli_dataset(args, path):
     print("Tokenize nli data...")
 
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
     n_pre, n_hyp, c_pre, c_hyp, e_pre, e_hyp = read_nli_split(args.nli)
 
     n_pre_tokenized = {
@@ -301,7 +309,7 @@ def preprocess_mbti_dataset(args):
         test_size=args.split_rate
     )
 
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
     train_persona_tokenized = {
         k: v for k, v in tokenizer(
@@ -451,28 +459,26 @@ def preprocess_mbti_dataset(args):
 if __name__ == '__main__':
     parser = ArgumentParser("Preprocessing Dataset")
     parser.add_argument("--split_rate", type=float, default=0.1)
+    parser.add_argument("--model_path", type=str, default=model_path)
     parser.add_argument("--train", type=str,
-                        default="data/aihub/TL_01. KAKAO(4)",
+                        default=train_data_path,
                         help="path to train dataset")
     parser.add_argument("--test", type=str,
-                        default=".data/aihub/TL_01. KAKAO(4)",
+                        default=test_data_path,
                         help="path to test dataset (valid)")
     parser.add_argument("--nli", type=str,
-                        default="./data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv",
+                        default=nli_data_path,
                         help="path to nli dataset")
     parser.add_argument("--dataset_type", type=str,
-                        default="aihub")
-    # required = True)
+                        default=dataset_type)
+
     parser.add_argument("--max_srclen", type=int,
-                        default=128,
+                        default=64,
                         help="max length of source mbti data")
     parser.add_argument("--max_tgtlen", type=int,
-                        default=128,
+                        default=64,
                         help="max length of target mbti data")
 
-    parser.add_argument("--aihub_train", type=str,
-                        default="data/aihub/TL_01. KAKAO(4)",
-                        help="path to aihub dataset")
     args = parser.parse_args()
 
     if args.dataset_type == "mbti":

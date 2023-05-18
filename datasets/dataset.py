@@ -3,10 +3,15 @@ import json
 import torch.utils as utils
 from torch.utils.data import Dataset
 import os
-""" 
-https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=543
-"""
-# Aihub : 다자 대화 제외해야 함. 
+
+# Settings
+N_persona = "상상력이 풍부하여 비유적이고 추상적이다. 직관적이고 직감을 중요하게 생각한다."
+S_persona = "감각을 통해 느낀 경험과 사실이 중요하다. 규칙과 원리를 중요하게 생각한다."
+
+T_persona = "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
+F_persona = "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
+
+
 class AIHubDataset():
     def __init__(self, q_act, r_act, queries, responses, device):
         self.q_act = q_act
@@ -16,9 +21,9 @@ class AIHubDataset():
         self.device = device 
     
     def __getitem__(self, idx):
-        q_act = {
+        r_act = {
             key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.q_act.items()
+            for key, val in self.r_act.items()
         }
         query = {
             key : torch.tensor(val[idx]).to(self.device)
@@ -29,7 +34,7 @@ class AIHubDataset():
             for key, val in self.responses.items()
         }
 
-        return {'persona' : q_act, 'query' : query, 'response' : response}
+        return {'persona' : r_act, 'query' : query, 'response' : response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
@@ -41,9 +46,9 @@ class MBTIDataset(Dataset):
         self.device = device 
         
     def __getitem__(self, idx):
-        a_mbti = {
+        persona = {
             key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.a_mbti.items()
+            for key, val in self.personas.items()
         }
         query = {
             key: torch.tensor(val[idx]).to(self.device)
@@ -53,7 +58,7 @@ class MBTIDataset(Dataset):
             key: torch.tensor(val[idx]).to(self.device)
             for key, val in self.responses.items()
         }
-        return {'persona' : a_mbti, 'query': query, 'response': response}
+        return {'persona' : persona, 'query': query, 'response': response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
@@ -160,16 +165,16 @@ def read_mbti_split(split_dir):
                 
                 
                 if "t" in a_mbti:
-                    persona_sentence += "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
+                    persona_sentence += T_persona
                 elif "f" in a_mbti:
-                    persona_sentence += "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
+                    persona_sentence += F_persona
                 else:
                     raise (ValueError)
                 
                 if "n" in a_mbti:
-                    persona_sentence += "상상력이 풍부하여 비유적이고 추상적이다. 직관적이고 직감을 중요하게 생각한다."
+                    persona_sentence += N_persona
                 elif "s" in a_mbti:
-                    persona_sentence += "감각을 통해 느낀 경험과 사실이 중요하다. 규칙과 원리를 중요하게 생각한다."
+                    persona_sentence += S_persona
                 else:
                     raise (ValueError)
                 
