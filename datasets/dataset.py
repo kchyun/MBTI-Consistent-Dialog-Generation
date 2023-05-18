@@ -35,8 +35,8 @@ class AIHubDataset():
         return len(self.responses['input_ids'])
 class MBTIDataset(Dataset):
     def __init__(self, a_mbti, personas, queries, responses, device):
-        self.a_mbti = a_mbti 
-        self.queries = torch.concat(personas, queries)
+        self.personas = personas
+        self.queries = queries
         self.responses = responses 
         self.device = device 
         
@@ -91,10 +91,10 @@ def read_aihub_split(split_dir):
             # print(len(lines))
             for i in range(len(lines)):
                 if i == len(lines) - 1: break
-                q = lines[i]["norm_text"]
+                q = lines[i]["norm_text"].replace("키키 ", "").replace(" 키키", "")
                 qa = lines[i]["speechAct"].replace("(", " ").replace(")", " ")
 
-                r = lines[i+1]["norm_text"]
+                r = lines[i+1]["norm_text"].replace("키키 ", "").replace(" 키키", "")
                 ra = lines[i+1]["speechAct"].replace("(", " ").replace(")", " ")
                 
                 query.append(q)
@@ -160,9 +160,9 @@ def read_mbti_split(split_dir):
                 
                 
                 if "t" in a_mbti:
-                    persona_sentence += "상황의 이유와 결과가 궁금하며, 해결책을 제시합니다. 사실을 바탕으로 이성적이고 논리적으로 이야기합니다."
+                    persona_sentence += "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
                 elif "f" in a_mbti:
-                    persona_sentence += "상대방의 기분이 어떤지 공감, 축하 또는 위로합니다. 유연하고 융통성 있게 대처합니다." 
+                    persona_sentence += "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
                 else:
                     raise (ValueError)
                 

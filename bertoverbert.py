@@ -55,9 +55,9 @@ def prepare_aihub_data_batch(batch):
     return input_ids, attention_mask, type_ids, decoder_input_ids, decoder_attention_mask, lables, query_input_ids, persona_input_ids
 
 def prepare_mbti_data_batch(batch):
-    persona_input_ids = batch['a_persona']['input_ids']
-    persona_attention_mask = batch['a_persona']['attention_mask']
-    persona_type_ids = batch['a_persona']['token_type_ids'] * 0 + 1
+    persona_input_ids = batch['persona']['input_ids']
+    persona_attention_mask = batch['persona']['attention_mask']
+    persona_type_ids = batch['persona']['token_type_ids'] * 0 + 1
 
     query_input_ids = batch['query']['input_ids']
     query_attention_mask = batch['query']['attention_mask']
@@ -698,8 +698,8 @@ if __name__ == '__main__':
     parser.add_argument("--load_checkpoint", action="store_true")
     parser.add_argument("--checkpoint", type=str, default="./checkpoints/bertoverbert_epoch_5")
 
-    parser.add_argument("--max_source_length", type=int, default=128)
-    parser.add_argument("--max_target_length", type=int, default=32)
+    parser.add_argument("--max_source_length", type=int, default=64)
+    parser.add_argument("--max_target_length", type=int, default=64)
 
     parser.add_argument("--total_epochs", type=int, default=20)
     parser.add_argument("--eval_epoch", type=int, default=7)
