@@ -2,3 +2,4 @@ data/aihub/
 data/mbti
 data/rm
 xlibs/
+.env
