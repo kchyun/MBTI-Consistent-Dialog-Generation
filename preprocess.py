@@ -13,8 +13,8 @@ from os.path import dirname, join, basename
 
 # Settings
 model_path = "./beomi/kcbert-base"
-train_data_path = "./data/aihub/TL_01. KAKAO(1)"
-test_data_path = "./data/aihub/TL_01. KAKAO(1)"
+train_data_path = "./data/aihub/TL_01. KAKAO(4)"
+test_data_path = "./data/aihub/TL_01. KAKAO(4)"
 nli_data_path = "./data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv"
 dataset_type = "aihub"
 
@@ -295,9 +295,9 @@ def preprocess_mbti_dataset(args):
     print("Preprocessing...\n")
     # split
     train_mbti, train_persona, train_query, train_response = read_mbti_split(
-        args.train)  # split
+        args.train, args)  # split
     test_mbti, test_persona, test_query, test_response = read_mbti_split(
-        args.test)  # split
+        args.test, args)  # split
     assert len(train_persona) == len(train_mbti) == len(
         train_query) == len(train_response)
 
@@ -478,6 +478,10 @@ if __name__ == '__main__':
     parser.add_argument("--max_tgtlen", type=int,
                         default=64,
                         help="max length of target mbti data")
+
+    parser.add_argument("--mbti_4", action="store_true")
+    parser.add_argument("--mbti_sent", action="store_true")
+    parser.add_argument("--sent_type", action="store_true")
 
     args = parser.parse_args()
 

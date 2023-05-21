@@ -3,6 +3,7 @@ import json
 import torch.utils as utils
 from torch.utils.data import Dataset
 import os
+import random
 
 # Settings
 N_persona = "상상력이 풍부하여 비유적이고 추상적이다. 직관적이고 직감을 중요하게 생각한다."
@@ -147,7 +148,7 @@ def read_nli_split(split_dir):
         print(f"Sorry! file not found!")
     return neutral_pre_list, neutral_hyp_list, cont_pre_list, cont_hyp_list, entail_pre_list, entail_hyp_list
 
-def read_mbti_split(split_dir):
+def read_mbti_split(split_dir, args):
     mbti = []
     persona = []
     query = []
@@ -163,20 +164,29 @@ def read_mbti_split(split_dir):
 
                 persona_sentence = ''
                 
+                f_type = ['감사 ', '주장 ', '진술 ']
+                t_type = ['단언 ', '주장 ', '지시 ']
                 
-                if "t" in a_mbti:
-                    persona_sentence += T_persona
-                elif "f" in a_mbti:
-                    persona_sentence += F_persona
-                else:
-                    raise (ValueError)
+                if(args.sent_type):
+                    n = random.randint(0,2)
+                    if "t" in a_mbti:
+                        persona_sentence += t_type[n]
+                    elif "f" in a_mbti:
+                        persona_sentence += f_type[n]
+                    else:
+                        raise (ValueError)
                 
-                if "n" in a_mbti:
-                    persona_sentence += N_persona
-                elif "s" in a_mbti:
-                    persona_sentence += S_persona
-                else:
-                    raise (ValueError)
+                if(args.mbti_4):
+                    persona_sentence += a_mbti
+                
+                if(args.mbti_sent):
+                    if "t" in a_mbti:
+                        persona_sentence += T_persona
+                    elif "f" in a_mbti:
+                        persona_sentence += F_persona
+                    else:
+                        raise (ValueError)
+                    
                 
                 mbti.append(a_mbti.strip())
                 persona.append(persona_sentence)
