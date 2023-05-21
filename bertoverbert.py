@@ -295,7 +295,7 @@ def train(args):
     optim = AdamW(model.parameters(), lr=args.learning_rate)
 
     step = 0
-    start_epoch = int(args.checkpoint.split("_")[-1]) if args.load_checkpoint else 0
+    start_epoch = 0
     for epoch in range(start_epoch, args.total_epochs):
         print('\nTRAINING EPOCH %d' % epoch)
         batch_n = 0
@@ -391,7 +391,7 @@ def train(args):
 
 def predict(args):
     print("Load tokenized data...\n")
-    tokenizer = AutoTokenizer.from_pretrained(args.encoder_model)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
@@ -456,9 +456,9 @@ def predict(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/aihub/bertoverbert_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/mbti/bertoverbert_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -508,7 +508,7 @@ def predict(args):
 
 def evaluation(args):
     print("Load tokenized data...\n")
-    tokenizer = tokenizer.from_pretrained(args.encoder_model)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
