@@ -161,7 +161,8 @@ def read_mbti_split(split_dir, args):
 
                 q = q.replace("\n", " ").replace("[SEP]", " ").strip()
                 a = a.replace("\n", " ").replace("[SEP]", " ").strip()
-
+                a_mbti = a_mbti.replace("\n", " ")
+                
                 persona_sentence = ''
                 
                 f_type = ['감사 ', '주장 ', '진술 ']
@@ -187,7 +188,7 @@ def read_mbti_split(split_dir, args):
                     else:
                         raise (ValueError)
                     
-                
+                print(persona_sentence)
                 mbti.append(a_mbti.strip())
                 persona.append(persona_sentence)
                 query.append(q)
