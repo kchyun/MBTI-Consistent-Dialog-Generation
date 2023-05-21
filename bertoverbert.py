@@ -391,7 +391,7 @@ def train(args):
 
 def predict(args):
     print("Load tokenized data...\n")
-    tokenizer = tokenizer.from_pretrained(args.encoder_model)
+    tokenizer = AutoTokenizer.from_pretrained(args.encoder_model)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
