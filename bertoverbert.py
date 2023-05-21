@@ -385,7 +385,7 @@ def train(args):
                 print('\nTRAINING EPOCH %d\n' % epoch)
                 model.train()
 
-            if not step <= args.warm_up_steps and step%2000 == 0:
+            if not step <= args.warm_up_steps and step%5000 == 0:
                 print(f'Saving model at epoch {epoch} step {step}')
                 model.save_pretrained(f"{args.save_model_path}_%d" % step)
 
