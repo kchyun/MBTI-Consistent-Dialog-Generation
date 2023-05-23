@@ -88,12 +88,12 @@ def clean_aihub_dataset():
                     if i == len(lines) - 1:
                         break
                     q = pattern_cleansing(lines[i]["norm_text"].replace(
-                        "키키 ", "").replace(" 키키", ""))
+                        "키키 ", "").replace(" 키키", "").replace("키키", ""))
                     qa = lines[i]["speechAct"].replace(
                         "(", "").replace(")", "")
 
                     r = pattern_cleansing(
-                        lines[i + 1]["norm_text"].replace("키키 ", "").replace(" 키키", ""))
+                        lines[i + 1]["norm_text"].replace("키키 ", "").replace(" 키키", "").replace("키키", ""))
                     ra = lines[i +
                                1]["speechAct"].replace("(", "").replace(")", "")
 
@@ -155,6 +155,6 @@ def clean_mbti_dataset(file_name):
 
 
 if __name__ == '__main__':
-    # clean_aihub_dataset()
+    clean_aihub_dataset()
     # clean_mbti_dataset('qna.tsv')
     # clean_mbti_dataset('multiple_qna.tsv')
