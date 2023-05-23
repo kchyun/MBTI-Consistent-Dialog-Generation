@@ -69,8 +69,8 @@ def pattern_cleansing(sentence):
 
 def clean_aihub_dataset():
     print("Cleansing Aihub dataset...\n")
-    dir = '.\\data\\aihub\\kakao'
-    output_path = './data/aihub/kakao_cleaned.jsonl'
+    dir = '.\\data\\aihub\\instagram'
+    output_path = './data/aihub/instagram_cleaned.jsonl'
 
     aihub_files = list(glob(join(dir, "*\\*.*")))
 
