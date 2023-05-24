@@ -9,8 +9,9 @@ from datasets.dataset import read_aihub_split
 from glob import glob
 import os
 from os.path import dirname, join, basename
-
-
+from tqdm import tqdm
+import random
+import numpy as np 
 # Settings
 model_path = "./beomi/kcbert-base"
 train_data_path = "./data/aihub/TL_01. KAKAO(4)"
@@ -18,12 +19,48 @@ test_data_path = "./data/aihub/TL_01. KAKAO(4)"
 nli_data_path = "./data/kor-nlu-datasets/KorNLI/xnli.dev.ko.tsv"
 dataset_type = "aihub"
 
+def convert_to_txt(args):
+    filelist = os.listdir(args.dirpath)
+    txt_path = './data/aihub/filelist/{}.txt'.format(args.dirpath.split('/')[-1])
+    f = open(txt_path, 'w') 
+    for item in sorted(filelist):
+        f.write(item)
+        f.write('\n')
+    f.close()
+
+def get_filelist(dirname, ver):
+    filelist= [] 
+    if ver == 'ext':
+        with open('./data/aihub/filelist/{}.txt'.format(dirname)) as f:
+            for line in f:
+                line = line.strip()
+                filelist.append(join(dirname, line))
+    elif ver =='get':
+        with open('./data/aihub/filelist/{}.txt'.format(dirname)) as f:
+            for line in f:
+                line = line.strip()
+                filelist.append('./data/aihub/{}'.format(line))
+    return filelist
+
+def get_random_files():
+    random.seed(530)
+    txt_path = './data/aihub/filelist/kakao_all.txt'
+    f = open(txt_path, 'w')
+    for i in range(1, 4+1):
+        filelist = get_filelist("kakao{}".format(i), 'ext')
+        randidx = sorted(np.random.randint(len(filelist), size = int(len(filelist) / 4)))
+        print(len(filelist), len(randidx))
+        for idx in tqdm(randidx):
+            f.write(filelist[idx])
+            f.write('\n')
+    
 
 def preprocess_aihub_dataset(args):
     print("Preprocessing...\n")
     dir = args.train.split('/')[-1]
-    aihub_files = list(glob(join(args.train, "*.*")))
-
+    #aihub_files = list(glob(join(args.train, "*.*")))
+    aihub_files = get_filelist('kakao_all', 'get')
+    
     train_query_tokenized = {"input_ids": [],
                              "token_type_ids": [], "attention_mask": []}
     val_query_tokenized = {"input_ids": [],
@@ -54,7 +91,7 @@ def preprocess_aihub_dataset(args):
 
     tokenizer = AutoTokenizer.from_pretrained(args.model_path)
 
-    for file in aihub_files:
+    for file in tqdm(aihub_files):
 
         train_qact, train_query, train_ract, train_response = read_aihub_split(
             file)
@@ -171,7 +208,7 @@ def preprocess_aihub_dataset(args):
         ).items():
             test_response_tokenized[k] += v
 
-        print(file)
+       
 
     print("Saving Tokenized dict\n")
 
@@ -482,10 +519,17 @@ if __name__ == '__main__':
     parser.add_argument("--mbti_4", action="store_true")
     parser.add_argument("--mbti_sent", action="store_true")
     parser.add_argument("--sent_type", action="store_true")
-
+    parser.add_argument("--dirname", type = str,
+                        default = "./data/aihub/kakao",
+                        help = "dir path to extract filelist")
+    parser.add_argument("--dirpath", type = str,
+                        default = "kakao",
+                        help = "dirname to extract filelist")
     args = parser.parse_args()
-
+    #get_random_files()
+    
     if args.dataset_type == "mbti":
         preprocess_mbti_dataset(args)
     elif args.dataset_type == "aihub":
         preprocess_aihub_dataset(args)
+    
