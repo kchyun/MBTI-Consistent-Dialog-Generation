@@ -527,35 +527,38 @@ def chat(args):
         f_type = ['감사 ', '주장 ', '진술 ']
         t_type = ['단언 ', '주장 ', '지시 ']
         
-        if(args.sent_type):
-            n = rd.randint(0,2)
-            if "t" in mbti:
-                persona += t_type[n]
-            elif "f" in mbti:
-                persona += f_type[n]
-            else:
-                raise (ValueError)
+        n = rd.randint(0,2)
+        if "t" in mbti:
+            persona += t_type[n]
+        elif "f" in mbti:
+            persona += f_type[n]
+        else:
+            continue
         
-        if(args.mbti_4):
-            persona += mbti
+      #  if(args.mbti_4):
+      #      persona += mbti
         
         T_persona = "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
         F_persona = "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
         
-        if(args.mbti_sent):
-            if "t" in mbti:
-                persona_sentence += T_persona
-            elif "f" in mbti:
-                persona_sentence += F_persona
-            else:
-                raise (ValueError)
+        if "t" in mbti:
+            persona += T_persona
+        elif "f" in mbti:
+            persona += F_persona
+        else:
+            continue
+
+        mbti = [mbti]
+        persona = [persona]
+        query = [query]
+        response = [response]
 
         persona_tokenized = {
             k: v for k, v in tokenizer(
                 persona,
                 truncation=True,
                 padding=True,
-                max_length=args.max_srclen
+                max_length=64
             ).items()
         }
         
@@ -564,7 +567,7 @@ def chat(args):
                 query,
                 truncation=True,
                 padding=True,
-                max_length=args.max_srclen
+                max_length=64
             ).items()
         }
 
@@ -573,7 +576,7 @@ def chat(args):
                 response,
                 truncation=True,
                 padding=True,
-                max_length=args.max_srclen
+                max_length=64
             ).items()
         }
 
