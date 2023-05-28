@@ -506,6 +506,125 @@ def predict(args):
             for p, q, g, r, r2 in zip(persona_token, query_token, gold_token, generated_token, generated_token_2):
                 outf.write(f"persona:{p}\tquery:{q}\tgold:{g}\tresponse_from_d1:{r}\tresponse_from_d2:{r2}\n")
 
+def chat(args):
+    print("Load tokenized data...\n")
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+
+    # Loading Model
+    print("Loading Model from %s" % args.checkpoint)
+    model = EncoderDecoderModel.from_pretrained(args.checkpoint)
+    model.to(device)
+    model.eval()
+
+    tokenizer, model = init(tokenizer, model)
+
+    while(True):
+        mbti = input("mbti: ")
+        query = input("query: ")
+        persona = ''
+        response = input("expected response: ")
+        
+        f_type = ['감사 ', '주장 ', '진술 ']
+        t_type = ['단언 ', '주장 ', '지시 ']
+        
+        n = rd.randint(0,2)
+        if "t" in mbti:
+            persona += t_type[n]
+        elif "f" in mbti:
+            persona += f_type[n]
+        else:
+            continue
+        
+      #  if(args.mbti_4):
+      #      persona += mbti
+        
+        T_persona = "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
+        F_persona = "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
+        
+        if "t" in mbti:
+            persona += T_persona
+        elif "f" in mbti:
+            persona += F_persona
+        else:
+            continue
+
+        mbti = [mbti]
+        persona = [persona]
+        query = [query]
+        response = [response]
+
+        persona_tokenized = {
+            k: v for k, v in tokenizer(
+                persona,
+                truncation=True,
+                padding=True,
+                max_length=64
+            ).items()
+        }
+        
+        query_tokenized = {
+            k: v for k, v in tokenizer(
+                query,
+                truncation=True,
+                padding=True,
+                max_length=64
+            ).items()
+        }
+
+        response_tokenized = {
+            k: v for k, v in tokenizer(
+                response,
+                truncation=True,
+                padding=True,
+                max_length=64
+            ).items()
+        }
+
+        test_dataset = MBTIDataset(mbti,
+                                    persona_tokenized,
+                                    query_tokenized,
+                                    response_tokenized,
+                                    device)
+        
+        test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
+
+        print(f"Writing generated results to {args.save_result_path}...")
+
+        with open(args.save_result_path, "w", encoding="utf-8") as outf:
+            for test_batch in tqdm(test_loader):
+
+                input_ids, attention_mask, type_ids, decoder_input_ids, decoder_attention_mask, lables, query_input_ids, persona_input_ids = prepare_aihub_data_batch(test_batch) if args.dataset_type == 'aihub' else prepare_mbti_data_batch(test_batch)
+
+                generated = model.generate(input_ids,
+                                        token_type_ids=type_ids,
+                                        attention_mask=attention_mask,
+                                        num_beams=args.beam_size,
+                                        length_penalty=args.length_penalty,
+                                        min_length=args.min_length,
+                                        no_repeat_ngram_size=args.no_repeat_ngram_size,
+                                        per_input_ids=persona_input_ids)
+                generated_2 = model.generate(input_ids,
+                                            token_type_ids=type_ids,
+                                            attention_mask=attention_mask,
+                                            num_beams=args.beam_size,
+                                            length_penalty=args.length_penalty,
+                                            min_length=args.min_length,
+                                            no_repeat_ngram_size=args.no_repeat_ngram_size,
+                                            use_decoder2=True,
+                                            per_input_ids=persona_input_ids)
+                generated_token = tokenizer.batch_decode(
+                    generated, skip_special_tokens=True)
+                generated_token_2 = tokenizer.batch_decode(
+                    generated_2, skip_special_tokens=True)
+                query_token = tokenizer.batch_decode(
+                    query_input_ids, skip_special_tokens=True)
+                gold_token = tokenizer.batch_decode(decoder_input_ids,
+                                                    skip_special_tokens=True)
+                persona_token = tokenizer.batch_decode(
+                    persona_input_ids, skip_special_tokens=True)
+                for p, q, g, r, r2 in zip(persona_token, query_token, gold_token, generated_token, generated_token_2):
+                    outf.write(f"persona:{p}\tquery:{q}\tgold:{g}\tresponse_from_d1:{r}\tresponse_from_d2:{r2}\n")
+
 def evaluation(args):
     print("Load tokenized data...\n")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -692,6 +811,7 @@ if __name__ == '__main__':
     parser.add_argument("--do_train", action="store_true")
     parser.add_argument("--do_predict", action="store_true")
     parser.add_argument("--do_evaluation", action="store_true")
+    parser.add_argument("--do_chat", action="store_true")
     parser.add_argument("--word_stat", action="store_true")
     parser.add_argument("--use_decoder2", action="store_true")
 
@@ -747,5 +867,7 @@ if __name__ == '__main__':
         train(args)
     if args.do_predict:
         predict(args)
+    if args.do_chat:
+        chat(args)
     if args.do_evaluation:
         evaluation(args)
