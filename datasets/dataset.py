@@ -3,10 +3,16 @@ import json
 import torch.utils as utils
 from torch.utils.data import Dataset
 import os
-""" 
-https://aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=realm&dataSetSn=543
-"""
-# Aihub : 다자 대화 제외해야 함. 
+import random
+
+# Settings
+N_persona = "상상력이 풍부하여 비유적이고 추상적이다. 직관적이고 직감을 중요하게 생각한다."
+S_persona = "감각을 통해 느낀 경험과 사실이 중요하다. 규칙과 원리를 중요하게 생각한다."
+
+T_persona = "상황의 이유와 결과가 궁금하며, 해결책을 제시한다. 사실을 바탕으로 이성적이고 논리적으로 이야기한다."
+F_persona = "상대방의 기분이 어떤지 공감, 축하 또는 위로한다. 유연하고 융통성 있게 대처한다." 
+
+
 class AIHubDataset():
     def __init__(self, q_act, r_act, queries, responses, device):
         self.q_act = q_act
@@ -16,9 +22,9 @@ class AIHubDataset():
         self.device = device 
     
     def __getitem__(self, idx):
-        q_act = {
+        r_act = {
             key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.q_act.items()
+            for key, val in self.r_act.items()
         }
         query = {
             key : torch.tensor(val[idx]).to(self.device)
@@ -29,21 +35,21 @@ class AIHubDataset():
             for key, val in self.responses.items()
         }
 
-        return {'persona' : q_act, 'query' : query, 'response' : response}
+        return {'persona' : r_act, 'query' : query, 'response' : response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
 class MBTIDataset(Dataset):
     def __init__(self, a_mbti, personas, queries, responses, device):
-        self.a_mbti = a_mbti 
-        self.queries = torch.concat(personas, queries)
+        self.personas = personas
+        self.queries = queries
         self.responses = responses 
         self.device = device 
         
     def __getitem__(self, idx):
-        a_mbti = {
+        persona = {
             key : torch.tensor(val[idx]).to(self.device)
-            for key, val in self.a_mbti.items()
+            for key, val in self.personas.items()
         }
         query = {
             key: torch.tensor(val[idx]).to(self.device)
@@ -53,7 +59,7 @@ class MBTIDataset(Dataset):
             key: torch.tensor(val[idx]).to(self.device)
             for key, val in self.responses.items()
         }
-        return {'persona' : a_mbti, 'query': query, 'response': response}
+        return {'persona' : persona, 'query': query, 'response': response}
 
     def __len__(self):
         return len(self.responses['input_ids'])
@@ -88,13 +94,13 @@ def read_aihub_split(split_dir):
             data = json.load(file)
             info = data["info"][0]
             lines = info["annotations"]["lines"]
-            print(len(lines))
+            # print(len(lines))
             for i in range(len(lines)):
                 if i == len(lines) - 1: break
-                q = lines[i]["norm_text"]
+                q = lines[i]["norm_text"].replace("키키 ", "").replace(" 키키", "")
                 qa = lines[i]["speechAct"].replace("(", " ").replace(")", " ")
 
-                r = lines[i+1]["norm_text"]
+                r = lines[i+1]["norm_text"].replace("키키 ", "").replace(" 키키", "")
                 ra = lines[i+1]["speechAct"].replace("(", " ").replace(")", " ")
                 
                 query.append(q)
@@ -105,7 +111,7 @@ def read_aihub_split(split_dir):
     except FileNotFoundError:
         print("Sorry! File not found!\n")
     
-    print("Complete!")
+    # print("Complete!")
     return q_act, query, r_act, response
     
 def read_nli_split(split_dir):
@@ -142,7 +148,7 @@ def read_nli_split(split_dir):
         print(f"Sorry! file not found!")
     return neutral_pre_list, neutral_hyp_list, cont_pre_list, cont_hyp_list, entail_pre_list, entail_hyp_list
 
-def read_mbti_split(split_dir):
+def read_mbti_split(split_dir, args):
     mbti = []
     persona = []
     query = []
@@ -153,18 +159,38 @@ def read_mbti_split(split_dir):
             for line in src:
                 _, _, _, _, q, a, _, a_mbti = line.split("\t")
 
-                q = q.replace("\n", " ").replace("[SEP]", " ")
-                a = a.replace("\n", " ").replace("[SEP]", " ")
-
-                # TBD
-                if "t" in a_mbti:
-                    persona.append("T_sentence")
-                elif "f" in a_mbti:
-                    persona.append("F_sentence")
-                else:
-                    raise (ValueError)
-
-                mbti.append(a_mbti.replace("\n", ""))
+                q = q.replace("\n", " ").replace("[SEP]", " ").strip()
+                a = a.replace("\n", " ").replace("[SEP]", " ").strip()
+                a_mbti = a_mbti.replace("\n", " ")
+                
+                persona_sentence = ''
+                
+                f_type = ['감사 ', '주장 ', '진술 ']
+                t_type = ['단언 ', '주장 ', '지시 ']
+                
+                if(args.sent_type):
+                    n = random.randint(0,2)
+                    if "t" in a_mbti:
+                        persona_sentence += t_type[n]
+                    elif "f" in a_mbti:
+                        persona_sentence += f_type[n]
+                    else:
+                        raise (ValueError)
+                
+                if(args.mbti_4):
+                    persona_sentence += a_mbti
+                
+                if(args.mbti_sent):
+                    if "t" in a_mbti:
+                        persona_sentence += T_persona
+                    elif "f" in a_mbti:
+                        persona_sentence += F_persona
+                    else:
+                        raise (ValueError)
+                    
+                print(persona_sentence)
+                mbti.append(a_mbti.strip())
+                persona.append(persona_sentence)
                 query.append(q)
                 answer.append(a)
 
@@ -172,6 +198,7 @@ def read_mbti_split(split_dir):
         print(f"Sorry! The file {split_dir} can't be found.")
 
     return mbti, persona, query, answer
+
 def create_encoder_input():
     pass
 

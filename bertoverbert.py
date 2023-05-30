@@ -14,12 +14,20 @@ from xlibs import AdamW
 
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 
-
 from datasets.dataset import AIHubDataset, NLIDataset
 from datasets.dataset import MBTIDataset 
 
 
 device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+# Settings
+dataset_name = "aihub"
+model_path = "beomi/kcbert-base"
+checkpoint_path = "./checkpoints/" + dataset_name + "/bertoverbert_10000"
+save_model_path = "./checkpoints/" + dataset_name + "/bertoverbert"
+dumped_token_path = "./data/" + dataset_name + "/" + dataset_name + "_tokenized/"
+total_epoch = 10
+print_freq = 200
 
 def init(tokenizer, model):
     # special tokens? 
@@ -55,9 +63,9 @@ def prepare_aihub_data_batch(batch):
     return input_ids, attention_mask, type_ids, decoder_input_ids, decoder_attention_mask, lables, query_input_ids, persona_input_ids
 
 def prepare_mbti_data_batch(batch):
-    persona_input_ids = batch['a_persona']['input_ids']
-    persona_attention_mask = batch['a_persona']['attention_mask']
-    persona_type_ids = batch['a_persona']['token_type_ids'] * 0 + 1
+    persona_input_ids = batch['persona']['input_ids']
+    persona_attention_mask = batch['persona']['attention_mask']
+    persona_type_ids = batch['persona']['token_type_ids'] * 0 + 1
 
     query_input_ids = batch['query']['input_ids']
     query_attention_mask = batch['query']['attention_mask']
@@ -118,9 +126,7 @@ def train(args):
     
     print("Load tokenized data..\n")
     
-    # tokenizer 변경 필요
-    # KcBERT tokeniaer import with transformers
-    tokenizer = AutoTokenizer.from_pretrained("beomi/kcbert-base")
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
     
     tokenizer, model = init(tokenizer, model)
     # tokenize 필요
@@ -289,7 +295,7 @@ def train(args):
     optim = AdamW(model.parameters(), lr=args.learning_rate)
 
     step = 0
-    start_epoch = int(args.checkpoint.split("_")[-1]) if args.load_checkpoint else 0
+    start_epoch = 0
     for epoch in range(start_epoch, args.total_epochs):
         print('\nTRAINING EPOCH %d' % epoch)
         batch_n = 0
@@ -379,13 +385,13 @@ def train(args):
                 print('\nTRAINING EPOCH %d\n' % epoch)
                 model.train()
 
-        if not step <= args.warm_up_steps:
-            print(f'Saving model at epoch {epoch} step {step}')
-            model.save_pretrained(f"{args.save_model_path}_%d" % epoch)
+            if not step <= args.warm_up_steps and step%5000 == 0:
+                print(f'Saving model at epoch {epoch} step {step}')
+                model.save_pretrained(f"{args.save_model_path}_%d" % step)
 
 def predict(args):
     print("Load tokenized data...\n")
-    tokenizer = tokenizer.from_pretrained(args.encoder_model)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
@@ -450,9 +456,9 @@ def predict(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/aihub/bertoverbert_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/mbti/bertoverbert_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
@@ -502,7 +508,7 @@ def predict(args):
 
 def evaluation(args):
     print("Load tokenized data...\n")
-    tokenizer = tokenizer.from_pretrained(args.encoder_model)
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
@@ -691,22 +697,22 @@ if __name__ == '__main__':
 
     parser.add_argument("--train_valid_split", type=float, default=0.1)
 
-    parser.add_argument("--encoder_model", type = str, default = "./pretrained_models/kcbert-base")
-    parser.add_argument("--decoder_model", type = str, default = "./pretrained_models/kcbert-base")
-    parser.add_argument("--decoder2_model", type = str, default = "./pretrained_models/kcbert-base")
+    parser.add_argument("--encoder_model", type = str, default = model_path)
+    parser.add_argument("--decoder_model", type = str, default = model_path)
+    parser.add_argument("--decoder2_model", type = str, default = model_path)
     
     parser.add_argument("--load_checkpoint", action="store_true")
-    parser.add_argument("--checkpoint", type=str, default="./checkpoints/bertoverbert_epoch_5")
+    parser.add_argument("--checkpoint", type=str, default=checkpoint_path)
 
-    parser.add_argument("--max_source_length", type=int, default=128)
-    parser.add_argument("--max_target_length", type=int, default=32)
+    parser.add_argument("--max_source_length", type=int, default=64)
+    parser.add_argument("--max_target_length", type=int, default=64)
 
-    parser.add_argument("--total_epochs", type=int, default=20)
+    parser.add_argument("--total_epochs", type=int, default=total_epoch)
     parser.add_argument("--eval_epoch", type=int, default=7)
-    parser.add_argument("--print_frequency", type=int, default=-1)
+    parser.add_argument("--print_frequency", type=int, default=print_freq)
     parser.add_argument("--warm_up_steps", type=int, default=6000)
 
-    parser.add_argument("--batch_size", type=int, default=64)
+    parser.add_argument("--batch_size", type=int, default=32)
     parser.add_argument("--beam_size", type=int, default=1)
     parser.add_argument("--min_length", type=int, default=3)
     parser.add_argument("--no_repeat_ngram_size", type=int, default=0)
@@ -716,13 +722,13 @@ if __name__ == '__main__':
 
     parser.add_argument("--save_model_path",
                         type=str,
-                        default="checkpoints/bertoverbert")
+                        default=save_model_path)
     parser.add_argument("--save_result_path",
                         type=str,
                         default="test_result.tsv")
     parser.add_argument("--dataset_type",
                         type=str,
-                        default='aihub')
+                        default=dataset_name)
     parser.add_argument("--ppl_type",
                         type=str,
                         default='sents')
@@ -733,10 +739,10 @@ if __name__ == '__main__':
     '''
     parser.add_argument("--dumped_token",
                         type=str,
-                        default=None,
+                        default=dumped_token_path,
                         required=True)
     args = parser.parse_args()
-
+    
     if args.do_train:
         train(args)
     if args.do_predict:
