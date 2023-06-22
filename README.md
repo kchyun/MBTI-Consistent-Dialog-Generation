@@ -1,4 +1,5 @@
 # MBTI-Consistent-Dialog-Generation 
+![image](https://github.com/kchyun/MBTI-Consistent-Dialog-Generation/assets/105578577/ca13b33f-f434-41be-b007-c8e3fa5685d3)
 
 # BOB
 
