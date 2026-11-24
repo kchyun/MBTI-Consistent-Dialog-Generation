@@ -391,7 +391,7 @@ def train(args):
 
 def predict(args):
     print("Load tokenized data...\n")
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(args.encoder_model)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
@@ -627,7 +627,7 @@ def chat(args):
 
 def evaluation(args):
     print("Load tokenized data...\n")
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    tokenizer = AutoTokenizer.from_pretrained(args.encoder_model)
 
     if args.dumped_token is None:
         print('Pre-tokenized files must be provided.')
