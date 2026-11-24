@@ -692,9 +692,9 @@ def evaluation(args):
 
     # Loading Model
     if args.dataset_type == 'aihub':
-        model_path = f"./checkpoints/AIHub/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/aihub/bertoverbert_{args.eval_epoch}"
     elif args.dataset_type == 'mbti':
-        model_path = f"./checkpoints/MBTI/bertoverbert_{args.eval_epoch}"
+        model_path = f"./checkpoints/mbti/bertoverbert_{args.eval_epoch}"
     else:
         print(f"Invalid dataset_type {args.dataset_type}")
         raise (ValueError)
